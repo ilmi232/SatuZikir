@@ -8,6 +8,7 @@ export default function MobileNav() {
 
   const isKatalog = pathname === '/';
   const isTasbih = pathname.startsWith('/campaign');
+  const isRiwayat = pathname === '/riwayat';
   const isAdmin = pathname.startsWith('/admin');
 
   return (
@@ -49,13 +50,22 @@ export default function MobileNav() {
           <span className="text-[11px] font-medium">Tasbih</span>
         </Link>
 
-        {/* Tab 3: Hajat & Doa */}
+        {/* Tab 3: Riwayat */}
         <Link
-          href="/campaign/shalawat-nariyah-4444#prayers"
-          className="flex flex-col items-center justify-center min-w-[64px] min-h-[44px] gap-0.5 text-[#404944] hover:text-[#131b2e] transition-colors cursor-pointer"
+          href="/riwayat"
+          className={`flex flex-col items-center justify-center min-w-[64px] min-h-[44px] gap-0.5 transition-colors cursor-pointer ${
+            isRiwayat
+              ? 'text-[#003527] font-bold'
+              : 'text-[#404944] hover:text-[#131b2e]'
+          }`}
         >
-          <span className="material-symbols-outlined text-[22px]">favorite</span>
-          <span className="text-[11px] font-medium">Hajat & Doa</span>
+          <span
+            className="material-symbols-outlined text-[22px]"
+            style={{ fontVariationSettings: isRiwayat ? "'FILL' 1" : "'FILL' 0" }}
+          >
+            military_tech
+          </span>
+          <span className="text-[11px] font-medium">Riwayat</span>
         </Link>
 
         {/* Tab 4: Admin */}

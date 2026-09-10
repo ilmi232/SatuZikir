@@ -31,6 +31,15 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
+        {/* Anti-FOUC: apply dark class before first paint */}
+        <script dangerouslySetInnerHTML={{ __html: `
+  try {
+    var t = localStorage.getItem('satuzikir_theme');
+    if (t === 'dark') document.documentElement.classList.add('dark');
+  } catch(e) {}
+` }} />
       </head>
       <body className="min-h-full flex justify-center bg-[#eaedff] text-[#131b2e] antialiased">
         {/* Mobile Viewport Container (Constrained strictly to 480px) */}

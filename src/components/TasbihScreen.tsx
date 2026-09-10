@@ -7,6 +7,8 @@ import { playTasbihClick, playMilestoneSound, triggerHaptic } from '@/lib/audioH
 import { useWakeLock } from '@/hooks/useWakeLock';
 import confetti from 'canvas-confetti';
 import Link from 'next/link';
+import { recordSession } from '@/lib/localStats';
+import ShareSyiarButton from '@/components/ShareSyiarButton';
 
 interface TasbihScreenProps {
   campaign: Campaign;
@@ -95,29 +97,33 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
 
     try {
       const updatedTotal = await DataService.incrementCounter(campaign.id, amount);
+      const isDone = updatedTotal >= campaign.target_count;
+      recordSession(campaign.id, campaign.title, campaign.slug, amount, isDone);
       if (updatedTotal > 0) {
         setCampaign((prev) => ({
           ...prev,
           current_count: Math.max(prev.current_count, updatedTotal),
-          status: updatedTotal >= prev.target_count ? 'completed' : prev.status,
+          status: isDone ? 'completed' : prev.status,
         }));
       }
     } catch {
-      // ignore
+      recordSession(campaign.id, campaign.title, campaign.slug, amount, false);
     }
-  }, [campaign.id]);
+  }, [campaign.id, campaign.title, campaign.slug, campaign.target_count]);
 
   // Flush on unmount or tab close
   useEffect(() => {
     return () => {
       if (pendingBatchRef.current > 0) {
-        DataService.incrementCounter(campaign.id, pendingBatchRef.current);
+        const remaining = pendingBatchRef.current;
+        DataService.incrementCounter(campaign.id, remaining);
+        recordSession(campaign.id, campaign.title, campaign.slug, remaining, false);
       }
       if (batchTimeoutRef.current) {
         clearTimeout(batchTimeoutRef.current);
       }
     };
-  }, [campaign.id]);
+  }, [campaign.id, campaign.title, campaign.slug]);
 
   // Subscribe to realtime updates
   useEffect(() => {
@@ -501,15 +507,15 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
             <span>Kirim Hajat</span>
           </button>
 
-          <a
-            href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="h-12 rounded-xl bg-[#064e3b] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm hover:opacity-95 transition-opacity active:scale-95"
-          >
-            <span className="material-symbols-outlined text-[20px]">share</span>
-            <span>Ajak Berzikir</span>
-          </a>
+          <ShareSyiarButton
+            campaignName={campaign.title}
+            campaignSlug={campaign.slug}
+            personalCount={personalCount}
+            totalCount={campaign.current_count}
+            targetCount={campaign.target_count}
+            variant="full"
+            label="Ajak Berzikir"
+          />
         </div>
       </div>
 

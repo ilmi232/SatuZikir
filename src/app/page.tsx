@@ -10,7 +10,6 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('semua');
   const [liveTotal, setLiveTotal] = useState<number>(148920);
   const [activeJamaah, setActiveJamaah] = useState<number>(1420);
-  const [pwaDismissed, setPwaDismissed] = useState<boolean>(false);
 
   useEffect(() => {
     DataService.getCampaigns().then((data) => {
@@ -36,10 +35,6 @@ export default function HomePage() {
     return true;
   });
 
-  const handleInstallPwa = () => {
-    alert('Menambahkan SatuZikir ke Layar Utama Anda. Buka kapan saja dalam kekhusyukan.');
-    setPwaDismissed(true);
-  };
 
   return (
     <div className="flex flex-col w-full px-4 gap-4">
@@ -136,40 +131,7 @@ export default function HomePage() {
         ))}
       </div>
 
-      {/* Floating / Sticky PWA Install Banner Card */}
-      {!pwaDismissed && (
-        <aside className="w-full bg-[#e2e7ff] rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-3 my-2 border border-[#dae2fd]">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-[#003527] flex items-center justify-center shrink-0 shadow-sm text-white">
-              <span className="material-symbols-outlined text-[20px]">install_mobile</span>
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="font-headline text-sm font-bold text-[#003527] truncate">
-                Pasang SatuZikir
-              </span>
-              <span className="text-[11px] text-[#404944] truncate">
-                Akses tasbih instan tanpa unduh PlayStore
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              onClick={() => setPwaDismissed(true)}
-              aria-label="Tutup Banner"
-              className="w-8 h-8 flex items-center justify-center rounded-full text-[#404944] hover:bg-[#eaedff] transition-colors cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[16px]">close</span>
-            </button>
-            <button
-              onClick={handleInstallPwa}
-              type="button"
-              className="px-3.5 py-1.5 rounded-xl bg-[#904d00] hover:bg-[#663500] text-white text-xs font-bold shadow-sm active:scale-95 transition-transform cursor-pointer"
-            >
-              Pasang
-            </button>
-          </div>
-        </aside>
-      )}
+
     </div>
   );
 }
