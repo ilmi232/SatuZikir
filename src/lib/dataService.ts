@@ -87,6 +87,11 @@ const INITIAL_MOCK_PRAYERS: Prayer[] = [
   }
 ];
 
+// Helper to check valid UUID
+function isValidUUID(str: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+}
+
 function getLocalCampaigns(): Campaign[] {
   if (typeof window === 'undefined') return INITIAL_MOCK_CAMPAIGNS;
   try {
@@ -143,51 +148,109 @@ if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
 }
 
 export const DataService = {
+  /**
+   * Get all campaigns (Supabase Live with fallback to Local Storage)
+   */
   async getCampaigns(): Promise<Campaign[]> {
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase
-        .from('campaigns')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (!error && data) {
-        return data as Campaign[];
+      try {
+        const { data, error } = await supabase
+          .from('campaigns')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          if (data.length === 0) {
+            // Table exists but is empty -> Auto seed initial campaigns
+            await DataService.seedDatabase();
+            const recheck = await supabase
+              .from('campaigns')
+              .select('*')
+              .order('created_at', { ascending: false });
+            if (recheck.data && recheck.data.length > 0) {
+              saveLocalCampaigns(recheck.data as Campaign[]);
+              return recheck.data as Campaign[];
+            }
+          } else {
+            saveLocalCampaigns(data as Campaign[]);
+            return data as Campaign[];
+          }
+        }
+      } catch (err) {
+        console.warn('Supabase getCampaigns failed, falling back to local storage', err);
       }
     }
     return getLocalCampaigns();
   },
 
+  /**
+   * Get single campaign by slug or UUID
+   */
   async getCampaignBySlug(slug: string): Promise<Campaign | null> {
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase
-        .from('campaigns')
-        .select('*')
-        .eq('slug', slug)
-        .single();
-      if (!error && data) {
-        return data as Campaign;
+      try {
+        const isUuid = isValidUUID(slug);
+        let query = supabase.from('campaigns').select('*');
+        if (isUuid) {
+          query = query.eq('id', slug);
+        } else {
+          query = query.eq('slug', slug);
+        }
+
+        const { data, error } = await query.maybeSingle();
+        if (!error && data) {
+          return data as Campaign;
+        }
+      } catch (err) {
+        console.warn('Supabase getCampaignBySlug failed, falling back to local storage', err);
       }
     }
     const local = getLocalCampaigns();
     return local.find((c) => c.slug === slug || c.id === slug) || local[0] || null;
   },
 
+  /**
+   * Atomic increment counter (Anti-Race Condition via RPC)
+   */
   async incrementCounter(campaignId: string, amount: number): Promise<number> {
     if (amount <= 0) return 0;
 
     if (isSupabaseConfigured && supabase) {
       try {
-        const { data, error } = await supabase.rpc('increment_counter', {
-          target_campaign_id: campaignId,
-          amount,
-        });
-        if (!error && typeof data === 'number') {
-          return data;
+        let targetUuid = campaignId;
+        if (!isValidUUID(campaignId)) {
+          // If a slug was passed, find its UUID
+          const { data: c } = await supabase
+            .from('campaigns')
+            .select('id')
+            .eq('slug', campaignId)
+            .maybeSingle();
+          if (c?.id) targetUuid = c.id;
         }
-      } catch {
-        // fallback
+
+        if (isValidUUID(targetUuid)) {
+          const { data, error } = await supabase.rpc('increment_counter', {
+            target_campaign_id: targetUuid,
+            amount,
+          });
+
+          if (!error && typeof data === 'number' && data > 0) {
+            // Also keep local storage aligned
+            const campaigns = getLocalCampaigns();
+            const index = campaigns.findIndex((c) => c.id === targetUuid || c.slug === campaignId);
+            if (index !== -1) {
+              campaigns[index].current_count = data;
+              saveLocalCampaigns(campaigns);
+            }
+            return data;
+          }
+        }
+      } catch (err) {
+        console.warn('Supabase RPC increment_counter fallback to local', err);
       }
     }
 
+    // Local Storage Fallback
     const campaigns = getLocalCampaigns();
     const index = campaigns.findIndex((c) => c.id === campaignId || c.slug === campaignId);
     if (index !== -1) {
@@ -196,7 +259,7 @@ export const DataService = {
         current_count: Number(campaigns[index].current_count) + amount,
         status:
           Number(campaigns[index].current_count) + amount >= campaigns[index].target_count
-            ? 'completed'
+            ? ('completed' as const)
             : campaigns[index].status,
       };
       campaigns[index] = updated;
@@ -215,21 +278,31 @@ export const DataService = {
     return 0;
   },
 
+  /**
+   * Realtime subscription for a campaign counter
+   */
   subscribeToCampaign(campaignId: string, onUpdate: (campaign: Partial<Campaign>) => void) {
     if (isSupabaseConfigured && supabase) {
+      const isUuid = isValidUUID(campaignId);
+      const filter = isUuid ? `id=eq.${campaignId}` : undefined;
+
       const channel = supabase
-        .channel(`campaign-${campaignId}`)
+        .channel(`campaign-rt-${campaignId}`)
         .on(
           'postgres_changes',
           {
             event: 'UPDATE',
             schema: 'public',
             table: 'campaigns',
-            filter: `id=eq.${campaignId}`,
+            ...(filter ? { filter } : {}),
           },
           (payload) => {
             if (payload.new) {
-              onUpdate(payload.new as Campaign);
+              const updated = payload.new as Campaign;
+              if (!filter && updated.slug !== campaignId && updated.id !== campaignId) {
+                return;
+              }
+              onUpdate(updated);
             }
           }
         )
@@ -262,22 +335,53 @@ export const DataService = {
     return () => {};
   },
 
-  async getPrayers(campaignId: string): Promise<Prayer[]> {
+  /**
+   * Get prayers (Dinding Doa / Specific Campaign)
+   */
+  async getPrayers(campaignId?: string): Promise<Prayer[]> {
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase
-        .from('prayers')
-        .select('*')
-        .eq('campaign_id', campaignId)
-        .order('created_at', { ascending: false });
-      if (!error && data) {
-        return data as Prayer[];
+      try {
+        let query = supabase
+          .from('prayers')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        if (campaignId && campaignId !== 'global') {
+          if (isValidUUID(campaignId)) {
+            query = query.eq('campaign_id', campaignId);
+          } else {
+            const { data: c } = await supabase
+              .from('campaigns')
+              .select('id')
+              .eq('slug', campaignId)
+              .maybeSingle();
+            if (c?.id) {
+              query = query.eq('campaign_id', c.id);
+            }
+          }
+        }
+
+        const { data, error } = await query;
+        if (!error && data) {
+          return data as Prayer[];
+        }
+      } catch (err) {
+        console.warn('Supabase getPrayers fallback to local', err);
       }
     }
+
     const prayers = getLocalPrayers();
-    const filtered = prayers.filter((p) => p.campaign_id === campaignId);
-    return filtered.length > 0 ? filtered : prayers;
+    if (campaignId && campaignId !== 'global') {
+      const filtered = prayers.filter((p) => p.campaign_id === campaignId);
+      return filtered.length > 0 ? filtered : prayers;
+    }
+    return prayers;
   },
 
+  /**
+   * Submit prayer
+   */
   async submitPrayer(campaignId: string, name: string, prayerText: string): Promise<Prayer> {
     const newPrayer: Prayer = {
       id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'p_' + Date.now(),
@@ -289,18 +393,37 @@ export const DataService = {
     };
 
     if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase
-        .from('prayers')
-        .insert({
-          campaign_id: campaignId,
-          name: newPrayer.name,
-          prayer_text: newPrayer.prayer_text,
-          amin_count: 1,
-        })
-        .select()
-        .single();
-      if (!error && data) {
-        return data as Prayer;
+      try {
+        let targetUuid: string | null = null;
+        if (campaignId && campaignId !== 'global') {
+          if (isValidUUID(campaignId)) {
+            targetUuid = campaignId;
+          } else {
+            const { data: c } = await supabase
+              .from('campaigns')
+              .select('id')
+              .eq('slug', campaignId)
+              .maybeSingle();
+            targetUuid = c?.id || null;
+          }
+        }
+
+        const { data, error } = await supabase
+          .from('prayers')
+          .insert({
+            campaign_id: targetUuid,
+            name: newPrayer.name,
+            prayer_text: newPrayer.prayer_text,
+            amin_count: 1,
+          })
+          .select()
+          .single();
+
+        if (!error && data) {
+          return data as Prayer;
+        }
+      } catch (err) {
+        console.warn('Supabase submitPrayer fallback to local', err);
       }
     }
 
@@ -316,13 +439,20 @@ export const DataService = {
     return newPrayer;
   },
 
+  /**
+   * Increment Amin
+   */
   async aminPrayer(prayerId: string): Promise<number> {
-    if (isSupabaseConfigured && supabase) {
-      const { data, error } = await supabase.rpc('increment_amin', {
-        prayer_id: prayerId,
-      });
-      if (!error && typeof data === 'number') {
-        return data;
+    if (isSupabaseConfigured && supabase && isValidUUID(prayerId)) {
+      try {
+        const { data, error } = await supabase.rpc('increment_amin', {
+          prayer_id: prayerId,
+        });
+        if (!error && typeof data === 'number') {
+          return data;
+        }
+      } catch (err) {
+        console.warn('Supabase increment_amin fallback to local', err);
       }
     }
 
@@ -343,21 +473,27 @@ export const DataService = {
     return 1;
   },
 
+  /**
+   * Realtime subscription for Prayers
+   */
   subscribeToPrayers(
     campaignId: string,
     onNewPrayer: (prayer: Prayer) => void,
     onAminUpdate: (prayerId: string, newAmin: number) => void
   ) {
     if (isSupabaseConfigured && supabase) {
+      const isUuid = isValidUUID(campaignId);
+      const filter = campaignId && campaignId !== 'global' && isUuid ? `campaign_id=eq.${campaignId}` : undefined;
+
       const channel = supabase
-        .channel(`prayers-${campaignId}`)
+        .channel(`prayers-rt-${campaignId}`)
         .on(
           'postgres_changes',
           {
             event: 'INSERT',
             schema: 'public',
             table: 'prayers',
-            filter: `campaign_id=eq.${campaignId}`,
+            ...(filter ? { filter } : {}),
           },
           (payload) => {
             if (payload.new) {
@@ -371,7 +507,7 @@ export const DataService = {
             event: 'UPDATE',
             schema: 'public',
             table: 'prayers',
-            filter: `campaign_id=eq.${campaignId}`,
+            ...(filter ? { filter } : {}),
           },
           (payload) => {
             if (payload.new) {
@@ -405,36 +541,71 @@ export const DataService = {
     return () => {};
   },
 
+  /**
+   * Save Campaign (Create or Update)
+   */
   async saveCampaign(campaign: Omit<Campaign, 'id' | 'created_at'> & { id?: string }): Promise<Campaign> {
     if (isSupabaseConfigured && supabase) {
-      if (campaign.id) {
-        const { data, error } = await supabase
-          .from('campaigns')
-          .update({
-            ...campaign,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', campaign.id)
-          .select()
-          .single();
-        if (!error && data) return data as Campaign;
-      } else {
-        const { data, error } = await supabase
-          .from('campaigns')
-          .insert({
-            ...campaign,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
-        if (!error && data) return data as Campaign;
+      try {
+        const isUuid = campaign.id && isValidUUID(campaign.id);
+        if (isUuid) {
+          const { data, error } = await supabase
+            .from('campaigns')
+            .update({
+              title: campaign.title,
+              slug: campaign.slug,
+              category: campaign.category || 'syifa',
+              description: campaign.description,
+              arabic_text: campaign.arabic_text,
+              latin_text: campaign.latin_text,
+              translation_text: campaign.translation_text,
+              target_count: campaign.target_count,
+              current_count: campaign.current_count,
+              status: campaign.status,
+              image_url: campaign.image_url,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', campaign.id!)
+            .select()
+            .single();
+
+          if (!error && data) {
+            return data as Campaign;
+          }
+        } else {
+          const { data, error } = await supabase
+            .from('campaigns')
+            .insert({
+              title: campaign.title,
+              slug: campaign.slug,
+              category: campaign.category || 'syifa',
+              description: campaign.description,
+              arabic_text: campaign.arabic_text,
+              latin_text: campaign.latin_text,
+              translation_text: campaign.translation_text,
+              target_count: campaign.target_count,
+              current_count: campaign.current_count || 0,
+              status: campaign.status || 'active',
+              image_url: campaign.image_url,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
+
+          if (!error && data) {
+            return data as Campaign;
+          }
+        }
+      } catch (err) {
+        console.warn('Supabase saveCampaign fallback to local', err);
       }
     }
 
+    // Local Storage Fallback
     const list = getLocalCampaigns();
     if (campaign.id) {
-      const idx = list.findIndex((c) => c.id === campaign.id);
+      const idx = list.findIndex((c) => c.id === campaign.id || c.slug === campaign.slug);
       if (idx !== -1) {
         const updated = { ...list[idx], ...campaign, updated_at: new Date().toISOString() };
         list[idx] = updated;
@@ -454,14 +625,121 @@ export const DataService = {
     return newCampaign;
   },
 
+  /**
+   * Delete Campaign
+   */
   async deleteCampaign(id: string): Promise<boolean> {
     if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase.from('campaigns').delete().eq('id', id);
-      if (!error) return true;
+      try {
+        const isUuid = isValidUUID(id);
+        const query = isUuid
+          ? supabase.from('campaigns').delete().eq('id', id)
+          : supabase.from('campaigns').delete().eq('slug', id);
+
+        const { error } = await query;
+        if (!error) return true;
+      } catch (err) {
+        console.warn('Supabase deleteCampaign fallback to local', err);
+      }
     }
+
     const list = getLocalCampaigns();
-    const filtered = list.filter((c) => c.id !== id);
+    const filtered = list.filter((c) => c.id !== id && c.slug !== id);
     saveLocalCampaigns(filtered);
     return true;
+  },
+
+  /**
+   * Seed default initial campaigns and prayers into Supabase
+   */
+  async seedDatabase(): Promise<{ success: boolean; count: number; error?: string }> {
+    if (!isSupabaseConfigured || !supabase) {
+      return { success: false, count: 0, error: 'Supabase belum diatur' };
+    }
+
+    try {
+      let insertedCount = 0;
+      for (const camp of INITIAL_MOCK_CAMPAIGNS) {
+        const { error } = await supabase.from('campaigns').upsert(
+          {
+            title: camp.title,
+            slug: camp.slug,
+            category: camp.category || 'syifa',
+            description: camp.description,
+            arabic_text: camp.arabic_text,
+            latin_text: camp.latin_text,
+            translation_text: camp.translation_text,
+            target_count: camp.target_count,
+            current_count: camp.current_count,
+            status: camp.status,
+            created_at: camp.created_at,
+          },
+          { onConflict: 'slug' }
+        );
+        if (!error) insertedCount++;
+      }
+
+      // Seed sample prayers
+      const { data: nariyah } = await supabase
+        .from('campaigns')
+        .select('id')
+        .eq('slug', 'shalawat-nariyah-4444')
+        .maybeSingle();
+
+      if (nariyah?.id) {
+        await supabase.from('prayers').insert([
+          {
+            campaign_id: nariyah.id,
+            name: 'Siti Aminah (Surabaya)',
+            prayer_text: 'Mohon kesembuhan berkah operasi Ibu di RS Sardjito, semoga diangkat penyakitnya. Aamiin.',
+            amin_count: 142,
+          },
+          {
+            campaign_id: null,
+            name: 'Hamba Allah (Yogyakarta)',
+            prayer_text: 'Bismillah dilancarkan rezeki yang halal berkah dan dijauhkan dari marabahaya.',
+            amin_count: 104,
+          },
+        ]);
+      }
+
+      return { success: true, count: insertedCount };
+    } catch (err) {
+      return { success: false, count: 0, error: (err as Error).message };
+    }
+  },
+
+  /**
+   * Migrate and upload all current local storage campaigns to Supabase
+   */
+  async migrateLocalToSupabase(): Promise<{ success: boolean; migrated: number; error?: string }> {
+    if (!isSupabaseConfigured || !supabase) {
+      return { success: false, migrated: 0, error: 'Koneksi Supabase belum aktif di .env.local' };
+    }
+
+    const localList = getLocalCampaigns();
+    let count = 0;
+
+    for (const c of localList) {
+      const { error } = await supabase.from('campaigns').upsert(
+        {
+          title: c.title,
+          slug: c.slug,
+          category: c.category || 'syifa',
+          description: c.description,
+          arabic_text: c.arabic_text,
+          latin_text: c.latin_text,
+          translation_text: c.translation_text,
+          target_count: c.target_count,
+          current_count: c.current_count,
+          status: c.status,
+          created_at: c.created_at,
+        },
+        { onConflict: 'slug' }
+      );
+      if (!error) count++;
+    }
+
+    return { success: true, migrated: count };
   }
 };

@@ -4,12 +4,22 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Campaign } from '@/types';
 import { DataService } from '@/lib/dataService';
+import { checkSupabaseHealth, isSupabaseConfigured, SupabaseHealthResult } from '@/lib/supabase';
+import { SUPABASE_PRODUCTION_SQL } from '@/lib/supabaseSql';
 import Link from 'next/link';
 
 export default function AdminHubPage() {
   const router = useRouter();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Supabase Live & Migration states
+  const [supabaseHealth, setSupabaseHealth] = useState<SupabaseHealthResult | null>(null);
+  const [isTestingSupabase, setIsTestingSupabase] = useState(false);
+  const [isMigratingData, setIsMigratingData] = useState(false);
+  const [migrationStatusMsg, setMigrationStatusMsg] = useState<string | null>(null);
+  const [showSqlGuideModal, setShowSqlGuideModal] = useState(false);
+  const [copiedSql, setCopiedSql] = useState(false);
 
   // Form states for quick creation
   const [title, setTitle] = useState('');
@@ -86,7 +96,38 @@ export default function AdminHubPage() {
       return;
     }
     loadCampaigns();
+    testSupabase();
   }, [router]);
+
+  const testSupabase = async () => {
+    setIsTestingSupabase(true);
+    const res = await checkSupabaseHealth();
+    setSupabaseHealth(res);
+    setIsTestingSupabase(false);
+  };
+
+  const handleSyncLocalToSupabase = async () => {
+    setIsMigratingData(true);
+    setMigrationStatusMsg(null);
+    const res = await DataService.migrateLocalToSupabase();
+    if (res.success) {
+      setMigrationStatusMsg(`Alhamdulillah! Berhasil menyinkronkan ${res.migrated} amalan ke Supabase Live.`);
+      await loadCampaigns();
+    } else {
+      setMigrationStatusMsg(`Gagal: ${res.error}`);
+    }
+    setIsMigratingData(false);
+  };
+
+  const handleCopySql = async () => {
+    try {
+      await navigator.clipboard.writeText(SUPABASE_PRODUCTION_SQL);
+      setCopiedSql(true);
+      setTimeout(() => setCopiedSql(false), 3000);
+    } catch {
+      alert('Gagal menyalin SQL.');
+    }
+  };
 
   const loadCampaigns = async () => {
     setLoading(true);
@@ -204,23 +245,87 @@ export default function AdminHubPage() {
           </div>
         </div>
 
-        {/* Health Badges */}
-        <div className="grid grid-cols-2 gap-2 mt-3 pt-2 border-t border-[#eaedff]">
-          <div className="flex items-center gap-2 bg-white p-2.5 rounded-xl shadow-sm border border-[#eaedff]">
-            <span className="material-symbols-outlined text-[18px] text-[#003623]">bolt</span>
-            <div className="flex flex-col min-w-0">
-              <span className="text-[10px] text-[#404944] truncate">Supabase Realtime</span>
-              <span className="text-xs text-[#003527] font-bold">Channel: Aktif</span>
+        {/* Supabase Live Production Console & Migration Status */}
+        <div className="mt-3 pt-3 border-t border-[#eaedff] flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5">
+                <span
+                  className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                    supabaseHealth?.connected ? 'bg-[#31c98f]' : 'bg-[#fe932c]'
+                  }`}
+                />
+                <span
+                  className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                    supabaseHealth?.connected ? 'bg-[#31c98f]' : 'bg-[#fe932c]'
+                  }`}
+                />
+              </span>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-[#003527]">
+                  {supabaseHealth?.connected
+                    ? 'Supabase Production Live'
+                    : isSupabaseConfigured
+                    ? 'Menghubungkan ke Supabase...'
+                    : 'Mode Demo (Local Storage)'}
+                </span>
+                <span className="text-[10px] text-[#404944]">
+                  {supabaseHealth?.connected
+                    ? `Tersambung • Latency: ${supabaseHealth.latencyMs} ms`
+                    : isSupabaseConfigured
+                    ? supabaseHealth?.error || 'Sedang memeriksa koneksi...'
+                    : 'Belum terhubung ke database cloud Supabase'}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={testSupabase}
+                disabled={isTestingSupabase}
+                type="button"
+                title="Uji Ulang Koneksi"
+                className="px-2.5 py-1 rounded-xl bg-white hover:bg-[#eaedff] text-[#003527] text-[11px] font-semibold border border-[#eaedff] flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <span className={`material-symbols-outlined text-[15px] ${isTestingSupabase ? 'animate-spin' : ''}`}>
+                  sync
+                </span>
+                <span>{isTestingSupabase ? 'Cek...' : 'Uji Ping'}</span>
+              </button>
+
+              <button
+                onClick={() => setShowSqlGuideModal(true)}
+                type="button"
+                className="px-2.5 py-1 rounded-xl bg-[#003527] hover:bg-[#064e3b] text-white text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[15px]">database</span>
+                <span>Setup SQL</span>
+              </button>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-white p-2.5 rounded-xl shadow-sm border border-[#eaedff]">
-            <span className="material-symbols-outlined text-[18px] text-[#904d00]">speed</span>
-            <div className="flex flex-col min-w-0">
-              <span className="text-[10px] text-[#404944] truncate">Concurrency Load</span>
-              <span className="text-xs text-[#904d00] font-bold">Normal (42 ms)</span>
+          {/* Action Row if Supabase is connected or demo mode */}
+          {supabaseHealth?.connected && (
+            <div className="flex items-center justify-between bg-emerald-50 rounded-xl p-2 border border-emerald-200">
+              <span className="text-[11px] text-[#003527] font-medium">
+                Sinkronkan amalan lokal ke database cloud live:
+              </span>
+              <button
+                onClick={handleSyncLocalToSupabase}
+                disabled={isMigratingData}
+                type="button"
+                className="px-3 py-1 rounded-lg bg-[#003527] hover:bg-[#064e3b] text-white text-[11px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {isMigratingData ? 'Menyinkronkan...' : 'Upload Data Lokal'}
+              </button>
             </div>
-          </div>
+          )}
+
+          {migrationStatusMsg && (
+            <div className="p-2 rounded-xl bg-[#ffdcc3] text-[#2f1500] text-xs font-semibold animate-in fade-in duration-200">
+              {migrationStatusMsg}
+            </div>
+          )}
         </div>
       </div>
 
@@ -739,6 +844,106 @@ export default function AdminHubPage() {
                 className="px-4 py-2 bg-[#003527] text-white text-xs font-bold rounded-xl"
               >
                 Simpan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Panduan & Salin Skema SQL Supabase */}
+      {showSqlGuideModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 animate-in fade-in duration-150">
+          <div className="w-full max-w-md max-h-[90vh] bg-white rounded-3xl p-5 shadow-2xl flex flex-col overflow-hidden border border-[#eaedff]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eaedff]">
+              <div className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[22px] text-[#003527]">database</span>
+                <div>
+                  <h3 className="font-headline text-base font-bold text-[#003527]">
+                    Panduan Migrasi Supabase Live
+                  </h3>
+                  <p className="text-[11px] text-[#404944]">3 Langkah Cepat Setup PostgreSQL Production</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSqlGuideModal(false)}
+                type="button"
+                className="w-8 h-8 rounded-full bg-[#eaedff] flex items-center justify-center text-[#404944] hover:text-[#131b2e] cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto py-3 space-y-3 text-xs text-[#131b2e]">
+              <div className="bg-[#f2f3ff] p-3 rounded-2xl space-y-1.5 border border-[#eaedff]">
+                <div className="flex items-center gap-1.5 font-bold text-[#003527]">
+                  <span className="w-5 h-5 rounded-full bg-[#003527] text-white flex items-center justify-center text-[10px]">1</span>
+                  <span>Buat Proyek Supabase</span>
+                </div>
+                <p className="text-[11px] text-[#404944] pl-6.5">
+                  Buka <a href="https://supabase.com" target="_blank" rel="noreferrer" className="text-[#904d00] font-bold underline">supabase.com</a> dan buat proyek baru (Region: Singapore untuk latency terendah di Indonesia).
+                </p>
+              </div>
+
+              <div className="bg-[#f2f3ff] p-3 rounded-2xl space-y-1.5 border border-[#eaedff]">
+                <div className="flex items-center gap-1.5 font-bold text-[#003527]">
+                  <span className="w-5 h-5 rounded-full bg-[#003527] text-white flex items-center justify-center text-[10px]">2</span>
+                  <span>Jalankan Script Skema SQL</span>
+                </div>
+                <p className="text-[11px] text-[#404944] pl-6.5">
+                  Buka menu <strong>SQL Editor</strong> di dashboard Supabase, klik <em>New query</em>, lalu tempel seluruh script SQL di bawah ini dan klik <strong>Run</strong>.
+                </p>
+                <div className="pl-6.5 pt-1">
+                  <button
+                    onClick={handleCopySql}
+                    type="button"
+                    className="w-full py-2 px-3 rounded-xl bg-[#003527] hover:bg-[#064e3b] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">
+                      {copiedSql ? 'check_circle' : 'content_copy'}
+                    </span>
+                    <span>{copiedSql ? 'Skema SQL Berhasil Disalin! 📋' : 'Salin Seluruh SQL Skema (1-Klik)'}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-[#f2f3ff] p-3 rounded-2xl space-y-1.5 border border-[#eaedff]">
+                <div className="flex items-center gap-1.5 font-bold text-[#003527]">
+                  <span className="w-5 h-5 rounded-full bg-[#003527] text-white flex items-center justify-center text-[10px]">3</span>
+                  <span>Pasang Kredensial di .env.local</span>
+                </div>
+                <p className="text-[11px] text-[#404944] pl-6.5 leading-relaxed">
+                  Buka menu <strong>Project Settings → API</strong> di Supabase. Salin URL dan anon key ke file <code className="bg-white px-1 py-0.5 rounded font-mono text-[10px]">.env.local</code>:
+                </p>
+                <pre className="bg-[#131b2e] text-[#ffdcc3] p-2.5 rounded-xl font-mono text-[10px] overflow-x-auto select-all">
+NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
+                </pre>
+              </div>
+
+              {/* Preview box */}
+              <div className="space-y-1">
+                <span className="text-[10px] uppercase font-bold text-[#404944]">Intip Potongan SQL:</span>
+                <pre className="bg-[#002d20] text-[#80bea6] p-2 rounded-xl text-[10px] font-mono h-24 overflow-y-auto">
+                  {SUPABASE_PRODUCTION_SQL.slice(0, 500)}...
+                </pre>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-[#eaedff] flex items-center justify-between">
+              <button
+                onClick={() => setShowSqlGuideModal(false)}
+                type="button"
+                className="px-4 py-2 text-xs font-bold text-[#404944] hover:text-[#131b2e] cursor-pointer"
+              >
+                Tutup
+              </button>
+              <button
+                onClick={handleCopySql}
+                type="button"
+                className="px-4 py-2 bg-[#fe932c] hover:bg-[#d97706] text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-md cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                <span>{copiedSql ? 'Tersalin!' : 'Salin SQL'}</span>
               </button>
             </div>
           </div>

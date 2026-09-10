@@ -1,4 +1,4 @@
--- =======================================================
+export const SUPABASE_PRODUCTION_SQL = `-- =======================================================
 -- SKEMA DATABASE SATUZIKIR (SUPABASE POSTGRESQL PRODUCTION)
 -- Version: 2.5 (Production Ready & Idempotent)
 -- =======================================================
@@ -227,18 +227,4 @@ ON CONFLICT (slug) DO UPDATE
 SET category = EXCLUDED.category,
     arabic_text = EXCLUDED.arabic_text,
     updated_at = timezone('utc'::text, now());
-
--- 10. Contoh Hajat & Doa Awal
-INSERT INTO prayers (campaign_id, name, prayer_text, amin_count)
-SELECT id, 'Siti Aminah (Surabaya)', 'Mohon kesembuhan berkah operasi Ibu di RS Sardjito, semoga diangkat penyakitnya. Aamiin.', 142
-FROM campaigns WHERE slug = 'shalawat-nariyah-4444'
-ON CONFLICT DO NOTHING;
-
-INSERT INTO prayers (campaign_id, name, prayer_text, amin_count)
-VALUES (
-    NULL,
-    'Hamba Allah (Yogyakarta)',
-    'Bismillah dilancarkan rezeki yang halal berkah dan dijauhkan dari marabahaya.',
-    104
-)
-ON CONFLICT DO NOTHING;
+`;
