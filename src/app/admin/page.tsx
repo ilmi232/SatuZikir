@@ -361,10 +361,10 @@ export default function AdminHubPage() {
           {/* iOS-Style Pill Capsules for Quick Inspiration */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
             {[
-              { label: '🌿 Shalawat Nariyah 4.444x', prompt: 'Buat campaign Shalawat Nariyah 4.444x untuk kelapangan hajat dan kesembuhan saudara yang sakit' },
-              { label: '🛡️ Hasbunallah 10.000x', prompt: 'Buat campaign Hasbunallah Wa Ni\'mal Wakil 10.000x untuk tolak bala, bencana, dan keselamatan umat' },
-              { label: '🤲 Istighfar 100.000x', prompt: 'Buat campaign Istighfar 100.000x pelebur dosa dan pembuka pintu rezeki berkah' },
-              { label: '🌙 Tibbil Qulub 1.000x', prompt: 'Buat campaign Shalawat Tibbil Qulub 1.000x obat penawar hati dan kesehatan jiwa raga' },
+              { label: 'Shalawat Nariyah 4.444x', prompt: 'Buat campaign Shalawat Nariyah 4.444x untuk kelapangan hajat dan kesembuhan saudara yang sakit' },
+              { label: 'Hasbunallah 10.000x', prompt: 'Buat campaign Hasbunallah Wa Ni\'mal Wakil 10.000x untuk tolak bala, bencana, dan keselamatan umat' },
+              { label: 'Istighfar 100.000x', prompt: 'Buat campaign Istighfar 100.000x pelebur dosa dan pembuka pintu rezeki berkah' },
+              { label: 'Tibbil Qulub 1.000x', prompt: 'Buat campaign Shalawat Tibbil Qulub 1.000x obat penawar hati dan kesehatan jiwa raga' },
             ].map((chip, idx) => (
               <button
                 key={idx}
