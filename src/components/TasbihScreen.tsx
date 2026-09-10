@@ -9,6 +9,7 @@ import confetti from 'canvas-confetti';
 import Link from 'next/link';
 import { recordSession } from '@/lib/localStats';
 import ShareSyiarButton from '@/components/ShareSyiarButton';
+import SyiarCardModal from '@/components/SyiarCardModal';
 
 interface TasbihScreenProps {
   campaign: Campaign;
@@ -22,6 +23,8 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
   const [isAudioOn, setIsAudioOn] = useState<boolean>(true);
   const [showExtendedDetails, setShowExtendedDetails] = useState<boolean>(true);
   const [isHajatModalOpen, setIsHajatModalOpen] = useState<boolean>(false);
+  const [isSyiarModalOpen, setIsSyiarModalOpen] = useState<boolean>(false);
+  const [milestoneNotice, setMilestoneNotice] = useState<{ count: number; text: string } | null>(null);
   const [hajatName, setHajatName] = useState<string>('');
   const [hajatText, setHajatText] = useState<string>('');
   const [submittingHajat, setSubmittingHajat] = useState<boolean>(false);
@@ -43,6 +46,16 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
   useEffect(() => {
     requestWakeLock();
   }, [requestWakeLock]);
+
+  // Auto-dismiss milestone notice
+  useEffect(() => {
+    if (milestoneNotice) {
+      const timer = setTimeout(() => {
+        setMilestoneNotice(null);
+      }, 9000);
+      return () => clearTimeout(timer);
+    }
+  }, [milestoneNotice]);
 
   // Load personal count
   useEffect(() => {
@@ -165,9 +178,20 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
       // ignore
     }
 
-    if (nextPersonal % 33 === 0) {
+    if (nextPersonal === 33 || nextPersonal === 100 || nextPersonal === 300 || (nextPersonal > 0 && nextPersonal % 100 === 0)) {
       playMilestoneSound(isAudioOn);
       triggerHaptic('milestone', isHapticOn);
+      setMilestoneNotice({
+        count: nextPersonal,
+        text: `MasyaAllah! Telah mencapai ${nextPersonal} butir.`,
+      });
+    } else if (nextPersonal % 33 === 0) {
+      playMilestoneSound(isAudioOn);
+      triggerHaptic('milestone', isHapticOn);
+      setMilestoneNotice({
+        count: nextPersonal,
+        text: `Alhamdulillah, putaran ${nextPersonal} butir tercapai.`,
+      });
     }
 
     const nextGlobal = campaign.current_count + 1;
@@ -180,6 +204,10 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
     if (nextGlobal >= campaign.target_count && !isCompleted) {
       confetti({ particleCount: 150, spread: 90, origin: { y: 0.55 } });
       triggerHaptic('complete', isHapticOn);
+      setMilestoneNotice({
+        count: nextPersonal,
+        text: 'Alhamdulillah! Target majelis telah khatam tuntas.',
+      });
     }
 
     pendingBatchRef.current += 1;
@@ -496,15 +524,24 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
           </button>
         </div>
 
-        {/* Dual Actions: Kirim Hajat & Share Whatsapp */}
-        <div className="grid grid-cols-2 gap-2 pt-1">
+        {/* Triple Actions: Kirim Hajat, Cetak Kartu Story (WA/IG), & Ajak Berzikir */}
+        <div className="grid grid-cols-3 gap-2 pt-1">
           <button
             onClick={() => setIsHajatModalOpen(true)}
             type="button"
-            className="h-12 rounded-xl bg-white text-[#003527] border border-[#eaedff] text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm hover:bg-[#eaedff] transition-all cursor-pointer active:scale-95"
+            className="h-12 rounded-xl bg-white dark:bg-white/5 text-[#003527] dark:text-white border border-[#eaedff] dark:border-white/10 text-[11px] font-bold flex flex-col items-center justify-center gap-0.5 shadow-sm hover:bg-[#eaedff] dark:hover:bg-white/10 transition-all cursor-pointer active:scale-95"
           >
-            <span className="material-symbols-outlined text-[20px] text-[#904d00]">edit_note</span>
+            <span className="material-symbols-outlined text-[18px] text-[#904d00] dark:text-[#ffb77d]">edit_note</span>
             <span>Kirim Hajat</span>
+          </button>
+
+          <button
+            onClick={() => setIsSyiarModalOpen(true)}
+            type="button"
+            className="h-12 rounded-xl bg-gradient-to-br from-[#fe932c] to-[#d97706] text-white text-[11px] font-bold flex flex-col items-center justify-center gap-0.5 shadow-sm hover:opacity-95 transition-all cursor-pointer active:scale-95"
+          >
+            <span className="material-symbols-outlined text-[18px]">photo_camera</span>
+            <span>Kartu Story</span>
           </button>
 
           <ShareSyiarButton
@@ -514,7 +551,8 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
             totalCount={campaign.current_count}
             targetCount={campaign.target_count}
             variant="full"
-            label="Ajak Berzikir"
+            label="Ajak Teman"
+            className="w-full h-12 rounded-xl bg-[#064e3b] hover:bg-[#003527] text-white flex flex-col items-center justify-center gap-0.5 text-[11px] font-bold shadow-sm transition-all cursor-pointer active:scale-95"
           />
         </div>
       </div>
@@ -552,6 +590,15 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
                 &ldquo;Ya Allah terimalah untaian zikir kami, jadikanlah ia cahaya di hati kami, pembuka jalan bagi yang berduka, penawar bagi yang sakit...&rdquo;
               </p>
             </div>
+
+            <button
+              onClick={() => setIsSyiarModalOpen(true)}
+              type="button"
+              className="w-full py-2.5 px-4 mb-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 bg-[#ffdcc3] hover:bg-white text-[#2f1500] transition-all cursor-pointer shadow-md active:scale-95"
+            >
+              <span className="material-symbols-outlined text-[18px]">photo_camera</span>
+              <span>Cetak Kartu Khatam (Story WA / IG)</span>
+            </button>
 
             <button
               onClick={handleAamiin}
@@ -638,6 +685,51 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
           </div>
         </div>
       )}
+
+      {/* Floating Milestone Celebration Banner */}
+      {milestoneNotice && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[92%] max-w-[440px] z-40 bg-[#003527]/95 dark:bg-[#064e3b]/95 text-white backdrop-blur-md rounded-2xl p-3.5 shadow-2xl border border-[#fe932c]/50 flex items-center justify-between animate-in slide-in-from-bottom duration-200">
+          <div className="flex items-center gap-2.5 min-w-0 pr-2">
+            <span
+              className="material-symbols-outlined text-[#ffdcc3] text-[26px] shrink-0"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              stars
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-[#ffdcc3] leading-tight">Milestone Tercapai! ✨</p>
+              <p className="text-[11px] text-white/90 truncate mt-0.5">{milestoneNotice.text}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => {
+                setIsSyiarModalOpen(true);
+                setMilestoneNotice(null);
+              }}
+              type="button"
+              className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#fe932c] to-[#d97706] text-white text-[11px] font-bold shadow-md cursor-pointer hover:opacity-95 active:scale-95 transition-transform"
+            >
+              Cetak Kartu
+            </button>
+            <button
+              onClick={() => setMilestoneNotice(null)}
+              type="button"
+              className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-white/80 hover:text-white cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[16px]">close</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Syiar Card Story Modal (9:16 Canvas Generator) */}
+      <SyiarCardModal
+        isOpen={isSyiarModalOpen}
+        onClose={() => setIsSyiarModalOpen(false)}
+        campaign={campaign}
+        personalCount={personalCount}
+      />
     </div>
   );
 }

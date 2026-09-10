@@ -10,6 +10,7 @@ interface ShareSyiarButtonProps {
   targetCount: number;
   variant?: 'minimal' | 'full';
   label?: string;
+  className?: string;
 }
 
 export default function ShareSyiarButton({
@@ -20,6 +21,7 @@ export default function ShareSyiarButton({
   targetCount,
   variant = 'full',
   label = 'Ajak Berzikir',
+  className,
 }: ShareSyiarButtonProps) {
   const [showToast, setShowToast] = useState(false);
 
@@ -64,7 +66,10 @@ export default function ShareSyiarButton({
         <button
           onClick={handleShare}
           type="button"
-          className="w-full h-12 rounded-xl bg-[#064e3b] hover:bg-[#003527] text-white flex items-center justify-center gap-1.5 text-xs font-bold shadow-sm transition-all cursor-pointer active:scale-95"
+          className={
+            className ||
+            'w-full h-12 rounded-xl bg-[#064e3b] hover:bg-[#003527] text-white flex items-center justify-center gap-1.5 text-xs font-bold shadow-sm transition-all cursor-pointer active:scale-95'
+          }
         >
           <span className="material-symbols-outlined text-[18px]">share</span>
           <span>{label}</span>
