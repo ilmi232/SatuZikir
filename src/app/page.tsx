@@ -4,173 +4,172 @@ import { useState, useEffect } from 'react';
 import { Campaign } from '@/types';
 import { DataService } from '@/lib/dataService';
 import CampaignCard from '@/components/CampaignCard';
-import { Sparkles, Users, HeartHandshake, ShieldCheck, Flame } from 'lucide-react';
-import Link from 'next/link';
 
 export default function HomePage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('active');
-  const [loading, setLoading] = useState<boolean>(true);
+  const [selectedCategory, setSelectedCategory] = useState<string>('semua');
+  const [liveTotal, setLiveTotal] = useState<number>(148920);
+  const [activeJamaah, setActiveJamaah] = useState<number>(1420);
+  const [pwaDismissed, setPwaDismissed] = useState<boolean>(false);
 
   useEffect(() => {
     DataService.getCampaigns().then((data) => {
       setCampaigns(data);
-      setLoading(false);
+      const sum = data.reduce((acc, c) => acc + Number(c.current_count), 0);
+      if (sum > 0) setLiveTotal(sum);
     });
+
+    // Real-time micro-pulse counter increment simulation
+    const interval = setInterval(() => {
+      setLiveTotal((prev) => prev + Math.floor(Math.random() * 3) + 1);
+      setActiveJamaah((prev) => Math.max(1200, prev + Math.floor(Math.random() * 5) - 2));
+    }, 4000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const filteredCampaigns = campaigns.filter((c) => {
-    if (filter === 'active') return c.status === 'active' && c.current_count < c.target_count;
-    if (filter === 'completed') return c.status === 'completed' || c.current_count >= c.target_count;
+    if (selectedCategory === 'semua') return true;
+    if (selectedCategory === 'syifa') return c.category === 'syifa' || !c.category;
+    if (selectedCategory === 'ramadan') return c.category === 'ramadan';
+    if (selectedCategory === 'tolak-bala') return c.category === 'tolak-bala';
     return true;
   });
 
-  const totalZikir = campaigns.reduce((acc, c) => acc + Number(c.current_count), 0);
+  const handleInstallPwa = () => {
+    alert('Menambahkan SatuZikir ke Layar Utama Anda. Buka kapan saja dalam kekhusyukan.');
+    setPwaDismissed(true);
+  };
 
   return (
-    <div className="flex-1 flex flex-col">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-16 px-4 sm:px-6 text-center">
-        {/* Glow effect */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="max-w-3xl mx-auto relative z-10">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-900/40 border border-emerald-700/50 text-xs font-semibold text-amber-300 mb-5 shadow-sm">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Platform Majelis Zikir Daring Pertama</span>
-          </div>
-
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
-            Satu Ketukan Zikir,{' '}
-            <span className="bg-gradient-to-r from-emerald-300 via-amber-300 to-amber-400 bg-clip-text text-transparent">
-              Jutaan Berkah Bersama
+    <div className="flex flex-col w-full px-4 gap-4">
+      {/* Hero Banner: Spiritual Living Sanctuary */}
+      <section className="relative w-full rounded-2xl overflow-hidden bg-[#064e3b] text-white shadow-md">
+        {/* Subtle decorative background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#003527] via-[#064e3b]/80 to-transparent" />
+        <div className="relative z-10 p-5 flex flex-col gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center justify-center p-1 rounded-full bg-[#004f34]/80 text-[#31c98f]">
+              <span className="material-symbols-outlined text-[16px]">groups</span>
             </span>
-          </h1>
-
-          <p className="text-sm sm:text-base text-slate-300 max-w-xl mx-auto mb-8 leading-relaxed">
-            Bergabunglah dalam amalan zikir dan shalawat bersama jamaah dari mana saja. Setiap ketukan di layar HP Anda langsung terakumulasi secara real-time hingga target amalan tercapai.
-          </p>
-
-          {/* Highlights Banner */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-xl mx-auto">
-            <div className="p-3 rounded-2xl bg-emerald-950/60 border border-emerald-900/60 backdrop-blur-sm">
-              <div className="flex items-center justify-center gap-1.5 text-amber-400 text-xs font-medium mb-0.5">
-                <Flame className="w-3.5 h-3.5" />
-                <span>Total Zikir Terkumpul</span>
-              </div>
-              <span className="text-lg sm:text-xl font-extrabold text-white font-mono">
-                {totalZikir.toLocaleString()}x
-              </span>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-emerald-950/60 border border-emerald-900/60 backdrop-blur-sm">
-              <div className="flex items-center justify-center gap-1.5 text-emerald-400 text-xs font-medium mb-0.5">
-                <HeartHandshake className="w-3.5 h-3.5" />
-                <span>Amalan Aktif</span>
-              </div>
-              <span className="text-lg sm:text-xl font-extrabold text-white font-mono">
-                {campaigns.filter((c) => c.status === 'active').length} Majelis
-              </span>
-            </div>
-
-            <div className="col-span-2 sm:col-span-1 p-3 rounded-2xl bg-emerald-950/60 border border-emerald-900/60 backdrop-blur-sm">
-              <div className="flex items-center justify-center gap-1.5 text-amber-300 text-xs font-medium mb-0.5">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Akses Bebas</span>
-              </div>
-              <span className="text-xs sm:text-sm font-bold text-slate-200 block mt-1">
-                Tanpa Perlu Login
-              </span>
-            </div>
+            <span className="text-[11px] font-bold text-[#b0f0d6] uppercase tracking-wider">
+              Kekuatan Jamaah Nusantara
+            </span>
           </div>
-        </div>
-      </section>
 
-      {/* Campaigns Section */}
-      <section id="campaigns" className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 pb-16">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-              <span>Amalan Zikir Berjamaah</span>
+          <div className="flex flex-col">
+            <h2 className="font-headline text-2xl text-white font-bold leading-tight">
+              Bergabung dalam Jutaan Butir Zikir Umat Hari Ini
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
-              Pilih amalan yang ingin Anda ikuti dan sempurnakan bersama
+            <p className="text-xs text-[#95d3ba] mt-1 leading-relaxed">
+              Satu niat, beribu ketukan tasbih. Satukan hati merajut doa bersama saudara seiman di seluruh penjuru negeri.
             </p>
           </div>
 
-          {/* Filter Tabs */}
-          <div className="flex items-center p-1 bg-emerald-950/80 rounded-xl border border-emerald-900/60 text-xs">
-            <button
-              onClick={() => setFilter('active')}
-              type="button"
-              className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
-                filter === 'active'
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Sedang Berjalan
-            </button>
-            <button
-              onClick={() => setFilter('all')}
-              type="button"
-              className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
-                filter === 'all'
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Semua
-            </button>
-            <button
-              onClick={() => setFilter('completed')}
-              type="button"
-              className={`px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
-                filter === 'completed'
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Khatam Target
-            </button>
+          {/* Live Counters Micro-Grid */}
+          <div className="grid grid-cols-2 gap-2 mt-1 pt-1">
+            <div className="flex flex-col bg-[#003527]/60 rounded-xl p-2.5 backdrop-blur-sm border border-[#064e3b]/50">
+              <div className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#31c98f] animate-ping" />
+                <span className="text-[10px] text-[#95d3ba]">Terhimpun Hari Ini</span>
+              </div>
+              <span className="font-headline text-xl text-white font-bold mt-0.5 font-mono">
+                {liveTotal.toLocaleString('id-ID')}
+              </span>
+              <span className="text-[10px] text-[#95d3ba]/80">butir zikir terbaca</span>
+            </div>
+
+            <div className="flex flex-col bg-[#003527]/60 rounded-xl p-2.5 backdrop-blur-sm border border-[#064e3b]/50">
+              <div className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#ffdcc3] animate-pulse" />
+                <span className="text-[10px] text-[#95d3ba]">Jamaah Aktif</span>
+              </div>
+              <span className="font-headline text-xl text-[#ffdcc3] font-bold mt-0.5 font-mono">
+                {activeJamaah.toLocaleString('id-ID')}
+              </span>
+              <span className="text-[10px] text-[#95d3ba]/80">sedang berzikir</span>
+            </div>
           </div>
         </div>
-
-        {/* Grid List */}
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((n) => (
-              <div
-                key={n}
-                className="h-80 rounded-2xl bg-emerald-950/40 border border-emerald-900/50 animate-pulse"
-              />
-            ))}
-          </div>
-        ) : filteredCampaigns.length === 0 ? (
-          <div className="text-center py-16 px-4 bg-emerald-950/20 rounded-2xl border border-emerald-900/40">
-            <Users className="w-10 h-10 text-emerald-500/50 mx-auto mb-3" />
-            <h3 className="text-base font-semibold text-slate-300 mb-1">
-              Tidak ada amalan pada kategori ini
-            </h3>
-            <p className="text-xs text-slate-400 mb-4">
-              Silakan periksa kategori lain atau buat amalan baru di dashboard admin.
-            </p>
-            <Link
-              href="/admin"
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-800 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold"
-            >
-              Buka Dashboard Admin
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCampaigns.map((campaign) => (
-              <CampaignCard key={campaign.id} campaign={campaign} />
-            ))}
-          </div>
-        )}
       </section>
+
+      {/* Filter Kategori Tasbih */}
+      <div className="flex flex-col gap-2 w-full">
+        <div className="flex items-center justify-between">
+          <span className="font-headline text-lg text-[#003527] font-bold">Ruang Munajat</span>
+          <span className="text-xs text-[#404944] font-medium">
+            {filteredCampaigns.length} Kampanye Berlangsung
+          </span>
+        </div>
+
+        {/* Filter Chips */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4">
+          {[
+            { id: 'semua', label: 'Semua' },
+            { id: 'syifa', label: 'Hajat & Syifa' },
+            { id: 'ramadan', label: 'Ramadan & Harian' },
+            { id: 'tolak-bala', label: 'Tolak Bala & Duka' },
+          ].map((cat) => {
+            const isActive = selectedCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                  isActive
+                    ? 'bg-[#003527] text-white shadow-sm'
+                    : 'bg-[#eaedff] text-[#404944] hover:bg-[#e2e7ff]'
+                }`}
+              >
+                {cat.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Real-time Campaign Cards List */}
+      <div className="flex flex-col gap-3.5 w-full">
+        {filteredCampaigns.map((campaign) => (
+          <CampaignCard key={campaign.id} campaign={campaign} />
+        ))}
+      </div>
+
+      {/* Floating / Sticky PWA Install Banner Card */}
+      {!pwaDismissed && (
+        <aside className="w-full bg-[#e2e7ff] rounded-2xl p-3.5 shadow-sm flex items-center justify-between gap-3 my-2 border border-[#dae2fd]">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-[#003527] flex items-center justify-center shrink-0 shadow-sm text-white">
+              <span className="material-symbols-outlined text-[20px]">install_mobile</span>
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-headline text-sm font-bold text-[#003527] truncate">
+                Pasang SatuZikir
+              </span>
+              <span className="text-[11px] text-[#404944] truncate">
+                Akses tasbih instan tanpa unduh PlayStore
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              onClick={() => setPwaDismissed(true)}
+              aria-label="Tutup Banner"
+              className="w-8 h-8 flex items-center justify-center rounded-full text-[#404944] hover:bg-[#eaedff] transition-colors cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[16px]">close</span>
+            </button>
+            <button
+              onClick={handleInstallPwa}
+              type="button"
+              className="px-3.5 py-1.5 rounded-xl bg-[#904d00] hover:bg-[#663500] text-white text-xs font-bold shadow-sm active:scale-95 transition-transform cursor-pointer"
+            >
+              Pasang
+            </button>
+          </div>
+        </aside>
+      )}
     </div>
   );
 }

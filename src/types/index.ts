@@ -3,6 +3,7 @@ export interface Campaign {
   title: string;
   slug: string;
   description: string;
+  category?: 'syifa' | 'ramadan' | 'tolak-bala' | 'harian';
   arabic_text: string;
   latin_text: string;
   translation_text: string;

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+
+<html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;}body{overscroll-behavior-y:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { 'colors': { 'outline-variant': '#bfc9c3', 'inverse-on-surface': '#eef0ff', 'tertiary-container': '#004f34', 'background': '#faf8ff', 'on-surface-variant': '#404944', 'on-secondary': '#ffffff', 'secondary-fixed-dim': '#ffb77d', 'primary-container': '#064e3b', 'error': '#ba1a1a', 'primary-fixed-dim': '#95d3ba', 'on-secondary-fixed': '#2f1500', 'secondary': '#904d00', 'tertiary-fixed': '#6ffbbe', 'on-secondary-container': '#663500', 'surface-container-low': '#f2f3ff', 'on-surface': '#131b2e', 'on-tertiary-container': '#31c98f', 'error-container': '#ffdad6', 'surface-bright': '#faf8ff', 'primary': '#003527', 'on-error-container': '#93000a', 'inverse-primary': '#95d3ba', 'on-background': '#131b2e', 'outline': '#707974', 'primary-fixed': '#b0f0d6', 'on-error': '#ffffff', 'surface-dim': '#d2d9f4', 'secondary-container': '#fe932c', 'on-tertiary-fixed': '#002113', 'on-primary-fixed': '#002117', 'surface-container-highest': '#dae2fd', 'surface-container-lowest': '#ffffff', 'on-primary-container': '#80bea6', 'surface': '#faf8ff', 'surface-container': '#eaedff', 'on-secondary-fixed-variant': '#6e3900', 'surface-tint': '#2b6954', 'secondary-fixed': '#ffdcc3', 'on-tertiary': '#ffffff', 'on-primary': '#ffffff', 'tertiary': '#003623', 'on-primary-fixed-variant': '#0b513d', 'inverse-surface': '#283044', 'surface-variant': '#dae2fd', 'on-tertiary-fixed-variant': '#005236', 'tertiary-fixed-dim': '#4edea3', 'surface-container-high': '#e2e7ff' }, 'borderRadius': { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, 'spacing': { 'space-md': '1rem', 'space-3xl': '4rem', 'space-2xl': '3rem', 'space-sm': '0.75rem', 'content-max-width': '480px', 'space-xs': '0.5rem', 'space-lg': '1.5rem', 'space-2xs': '0.25rem', 'gutter-mobile': '1rem', 'gutter-desktop': '2rem', 'space-xl': '2rem' }, 'fontFamily': { 'body-lg': ['Plus Jakarta Sans'], 'body-md': ['Plus Jakarta Sans'], 'display-lg-mobile': ['EB Garamond'], 'display-lg': ['EB Garamond'], 'label-sm': ['Plus Jakarta Sans'], 'headline-lg': ['EB Garamond'], 'headline-sm': ['EB Garamond'], 'body-sm': ['Plus Jakarta Sans'], 'label-md': ['Plus Jakarta Sans'], 'label-lg': ['Plus Jakarta Sans'], 'headline-md': ['EB Garamond'] }, 'fontSize': { 'body-lg': ['18px', { 'lineHeight': '28px', 'fontWeight': '400' }], 'body-md': ['16px', { 'lineHeight': '24px', 'fontWeight': '400' }], 'display-lg-mobile': ['36px', { 'lineHeight': '44px', 'letterSpacing': '-0.01em', 'fontWeight': '500' }], 'display-lg': ['48px', { 'lineHeight': '56px', 'letterSpacing': '-0.01em', 'fontWeight': '500' }], 'label-sm': ['11px', { 'lineHeight': '14px', 'letterSpacing': '0.06em', 'fontWeight': '600' }], 'headline-lg': ['32px', { 'lineHeight': '40px', 'fontWeight': '600' }], 'headline-sm': ['20px', { 'lineHeight': '28px', 'fontWeight': '600' }], 'body-sm': ['14px', { 'lineHeight': '20px', 'fontWeight': '400' }], 'label-md': ['12px', { 'lineHeight': '16px', 'letterSpacing': '0.04em', 'fontWeight': '600' }], 'label-lg': ['14px', { 'lineHeight': '20px', 'letterSpacing': '0.02em', 'fontWeight': '600' }], 'headline-md': ['24px', { 'lineHeight': '32px', 'fontWeight': '600' }] } } } };</script></head><body class="bg-surface text-on-surface font-body-md text-body-md select-none"><div class="max-w-content-max-width mx-auto min-h-screen relative flex flex-col bg-surface shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><header class="fixed top-0 w-full max-w-content-max-width z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-20 px-space-md flex flex-col justify-center"><div class="flex items-center justify-between"><div class="flex items-center gap-space-xs"><img alt="SatuZikir Emblem Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XPQ3zIX-G_LRi5FlgqXp_jDxgYbj78kQFOR3QetwrSGUfiH9RsiycyHjwaovjuX8vgoVC_aaLq8z9Yx7tbX4qjQUn4_jkzhpWlwvVCpREWJxVHPPbGVpqZZ2dLo6sLcmuyUqSbVeAkvIyO5SF_GnAZikQz0bAW-4qJVB3ijukoZsUKm-1SJoeLkJUigsWZruzx_i6BbgNXeCCVYJ7lxbfMjhumJL_e-13cJkm9QjvdeWQZc9jsf0kuqbs_"/><div class="flex flex-col"><div class="flex items-center gap-space-2xs"><span class="font-headline-sm text-headline-sm text-primary tracking-tight">SatuZikir</span><span class="bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm px-space-xs py-0.5 rounded-full uppercase tracking-wider">Live Jamaah</span></div><div class="flex items-center gap-1.5 mt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container animate-pulse"></span><span class="font-label-sm text-label-sm text-on-surface-variant">Real-Time Sync Terhubung</span></div></div></div><div class="flex items-center gap-space-xs"><button aria-label="Notifikasi &amp; Siar" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[22px]">share</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></div></header><main class="flex flex-col relative w-full pt-20 pb-24 bg-surface"><div class="flex flex-col w-full">
+<!-- Visual Ambient Backdrop Element -->
+<div class="px-space-md pt-space-xs pb-space-lg flex flex-col gap-space-lg">
+<!-- 1. Profil & Ringkasan Ruhani -->
+<section class="flex flex-col gap-space-md">
+<!-- Profile Header Row -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="relative">
+<div class="w-14 h-14 rounded-full bg-primary-container text-on-primary flex items-center justify-center shadow-md">
+<span class="font-headline-sm text-headline-sm text-primary-fixed">AF</span>
+</div>
+<div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-surface-container-lowest flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-secondary text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div class="flex flex-col">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Ahmad F.</h2>
+<div class="flex items-center gap-1.5 mt-0.5">
+<span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container animate-pulse"></span>
+                Jamaah Aktif
+              </span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">•</span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">14 Hari Terpelihara</span>
+</div>
+</div>
+</div>
+<button aria-label="Syiar Amalan" class="w-10 h-10 rounded-full bg-surface-container-low text-on-surface-variant hover:text-primary hover:bg-surface-container flex items-center justify-center transition-colors" id="btnSyiarQuick">
+<span class="material-symbols-outlined text-[20px]">ios_share</span>
+</button>
+</div>
+<!-- Sacred Counter Grand Card -->
+<div class="relative overflow-hidden rounded-xl bg-primary text-on-primary p-space-lg shadow-md flex flex-col justify-between">
+<!-- Ambient Ornamentation -->
+<div class="absolute -right-8 -bottom-8 w-36 h-36 rounded-full bg-on-tertiary-container/10 pointer-events-none blur-2xl"></div>
+<div class="absolute -left-10 -top-10 w-28 h-28 rounded-full bg-secondary-container/15 pointer-events-none blur-xl"></div>
+<div class="flex items-center justify-between relative z-10 mb-space-sm">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary-fixed text-[18px]">all_inclusive</span>
+<span class="font-label-sm text-label-sm text-primary-fixed uppercase tracking-wider">Tabungan Butir Akhirat</span>
+</div>
+<span class="font-label-sm text-label-sm text-surface-dim/80">Lillahi Ta'ala</span>
+</div>
+<div class="relative z-10 flex flex-col items-baseline my-space-xs">
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg-mobile text-display-lg-mobile text-surface-container-lowest font-semibold tracking-tight">14.850</span>
+<span class="font-headline-sm text-headline-sm text-secondary-fixed">Butir</span>
+</div>
+<p class="font-body-sm text-body-sm text-primary-fixed-dim mt-0.5">Tercatat dalam majelis syiar dan zikir pribadi</p>
+</div>
+<!-- 3 Pillars Data Strip -->
+<div class="grid grid-cols-3 gap-space-xs pt-space-md mt-space-sm bg-primary-container/60 -mx-space-lg -mb-space-lg px-space-md py-space-sm">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-primary-fixed-dim">Harian</span>
+<span class="font-headline-sm text-headline-sm text-surface-container-lowest">1.060<span class="font-body-sm text-body-sm text-secondary-fixed">x</span></span>
+</div>
+<div class="flex flex-col text-center">
+<span class="font-label-sm text-label-sm text-primary-fixed-dim">Majelis</span>
+<span class="font-headline-sm text-headline-sm text-surface-container-lowest">12</span>
+</div>
+<div class="flex flex-col text-right">
+<span class="font-label-sm text-label-sm text-primary-fixed-dim">Khatam</span>
+<span class="font-headline-sm text-headline-sm text-secondary-fixed">8<span class="font-body-sm text-body-sm text-primary-fixed-dim"> Kali</span></span>
+</div>
+</div>
+</div>
+</section>
+<!-- 2. Kalender Istiqomah & Dhikr Tracker -->
+<section class="flex flex-col bg-surface-container-lowest rounded-xl p-space-md shadow-sm gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
+<span class="material-symbols-outlined text-[20px]">local_fire_department</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">14 Hari Istiqomah</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Rangkaian amalan tidak terputus</span>
+</div>
+</div>
+<span class="px-space-xs py-0.5 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm">Pekan Ke-2</span>
+</div>
+<!-- Sacred Hadith Framing -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[18px] shrink-0 mt-0.5">format_quote</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant italic">
+          “Amalan yang paling dicintai Allah adalah yang istiqomah meskipun sedikit.”
+          <span class="block not-italic font-label-sm text-label-sm text-primary mt-1 font-semibold">— HR. Bukhari &amp; Muslim</span>
+</p>
+</div>
+<!-- 7-Day Micro Tracker -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex justify-between items-center px-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Sen</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Sel</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Rab</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Kam</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Jum</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Sab</span>
+<span class="font-label-sm text-label-sm text-primary font-bold">Ahad</span>
+</div>
+<div class="grid grid-cols-7 gap-space-2xs">
+<!-- Mon -->
+<div class="flex flex-col items-center gap-1">
+<div class="w-9 h-9 rounded-full bg-primary-container text-primary-fixed flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">1.2k</span>
+</div>
+<!-- Tue -->
+<div class="flex flex-col items-center gap-1">
+<div class="w-9 h-9 rounded-full bg-primary-container text-primary-fixed flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">900</span>
+</div>
+<!-- Wed -->
+<div class="flex flex-col items-center gap-1">
+<div class="w-9 h-9 rounded-full bg-primary-container text-primary-fixed flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">1.5k</span>
+</div>
+<!-- Thu -->
+<div class="flex flex-col items-center gap-1">
+<div class="w-9 h-9 rounded-full bg-primary-container text-primary-fixed flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">800</span>
+</div>
+<!-- Fri -->
+<div class="flex flex-col items-center gap-1">
+<div class="w-9 h-9 rounded-full bg-secondary-container text-on-secondary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-bold">2.1k</span>
+</div>
+<!-- Sat -->
+<div class="flex flex-col items-center gap-1">
+<div class="w-9 h-9 rounded-full bg-primary-container text-primary-fixed flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">1.0k</span>
+</div>
+<!-- Sun (Today - Active) -->
+<div class="flex flex-col items-center gap-1">
+<div class="w-9 h-9 rounded-full bg-primary text-secondary-fixed flex items-center justify-center shadow-md animate-pulse">
+<span class="material-symbols-outlined text-[18px]">done_all</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-bold">1.4k</span>
+</div>
+</div>
+</div>
+<!-- Weekly Histogram Visual Chart -->
+<div class="flex flex-col pt-space-xs gap-space-2xs">
+<div class="flex justify-between items-center text-on-surface-variant">
+<span class="font-label-sm text-label-sm">Aktivitas Sepekan (Rata-rata 1.270 butir)</span>
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-semibold">+18% vs pekan lalu</span>
+</div>
+<div class="h-16 w-full flex items-end gap-2 pt-2 px-1">
+<div class="flex-1 bg-surface-container rounded-t h-[55%]"></div>
+<div class="flex-1 bg-surface-container rounded-t h-[42%]"></div>
+<div class="flex-1 bg-surface-container rounded-t h-[70%]"></div>
+<div class="flex-1 bg-surface-container rounded-t h-[38%]"></div>
+<div class="flex-1 bg-secondary-fixed-dim rounded-t h-[100%]"></div>
+<div class="flex-1 bg-surface-container rounded-t h-[48%]"></div>
+<div class="flex-1 bg-primary-container rounded-t h-[65%]"></div>
+</div>
+</div>
+</section>
+<!-- 3. Koleksi Lencana Istiqomah (Milestones) -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[22px]">military_tech</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Lencana Ruhani</h3>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">3 Terbuka • 2 Berjalan</span>
+</div>
+<!-- Badges Horizontal/Vertical Bento Layout -->
+<div class="grid grid-cols-1 gap-space-xs">
+<!-- Unlocked Badge 1: Fajar Berzikir -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-xl bg-surface-container-lowest shadow-sm">
+<div class="w-12 h-12 rounded-xl bg-primary-container text-secondary-fixed flex items-center justify-center shrink-0 shadow-inner">
+<span class="material-symbols-outlined text-[26px]">wb_twilight</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<h4 class="font-headline-sm text-headline-sm text-on-surface truncate">Fajar Berzikir</h4>
+<span class="px-space-xs py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm">Teraih</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">Wirid sebelum terbit fajar 7 hari berturut-turut</p>
+</div>
+</div>
+<!-- Unlocked Badge 2: Pilar Khatam 10k -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-xl bg-surface-container-lowest shadow-sm">
+<div class="w-12 h-12 rounded-xl bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center shrink-0 shadow-inner">
+<span class="material-symbols-outlined text-[26px]">workspace_premium</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<h4 class="font-headline-sm text-headline-sm text-on-surface truncate">Pilar Khatam 10k</h4>
+<span class="px-space-xs py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm">Teraih</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">Menyumbang &gt;1.000 butir dalam 1 majelis khatam</p>
+</div>
+</div>
+<!-- Unlocked Badge 3: Penyambung Doa -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-xl bg-surface-container-lowest shadow-sm">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high text-primary flex items-center justify-center shrink-0 shadow-inner">
+<span class="material-symbols-outlined text-[26px]">volunteer_activism</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<h4 class="font-headline-sm text-headline-sm text-on-surface truncate">Penyambung Doa</h4>
+<span class="px-space-xs py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm">Teraih</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">Mengirimkan &amp; mengaminkan 50 hajat jamaah</p>
+</div>
+</div>
+<!-- In-Progress Badge 4: Mujahid 40 Hari -->
+<div class="flex flex-col p-space-sm rounded-xl bg-surface-container-low shadow-sm gap-space-xs">
+<div class="flex items-center gap-space-sm">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest text-on-surface-variant flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[24px]">lock_clock</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<h4 class="font-headline-sm text-headline-sm text-on-surface truncate">Mujahid 40 Hari</h4>
+<span class="font-label-sm text-label-sm text-primary font-bold">14/40 Hari</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">Istiqomah zikir harian tanpa henti</p>
+</div>
+</div>
+<!-- Progress Track -->
+<div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden mt-1">
+<div class="bg-primary h-full rounded-full" style="width: 35%;"></div>
+</div>
+</div>
+<!-- In-Progress Badge 5: Khadim Shalawat -->
+<div class="flex flex-col p-space-sm rounded-xl bg-surface-container-low shadow-sm gap-space-xs">
+<div class="flex items-center gap-space-sm">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest text-on-surface-variant flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[24px]">spa</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<h4 class="font-headline-sm text-headline-sm text-on-surface truncate">Khadim Shalawat</h4>
+<span class="font-label-sm text-label-sm text-secondary font-bold">6.250/10.000</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">Menggenapkan 10.000 bacaan shalawat</p>
+</div>
+</div>
+<!-- Progress Track -->
+<div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden mt-1">
+<div class="bg-secondary h-full rounded-full" style="width: 62.5%;"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- 4. Log Riwayat Majelis & Amalan Terkini -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Riwayat Kontribusi</h3>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">history_edu</span>
+</div>
+<!-- Segmented Tab Filter -->
+<div class="flex p-1 bg-surface-container-high rounded-xl gap-1">
+<button class="flex-1 py-1.5 rounded-lg bg-surface-container-lowest font-label-sm text-label-sm text-primary font-bold shadow-sm transition-all text-center">Semua</button>
+<button class="flex-1 py-1.5 rounded-lg text-on-surface-variant font-label-sm text-label-sm hover:text-on-surface transition-all text-center">Minggu Ini</button>
+<button class="flex-1 py-1.5 rounded-lg text-on-surface-variant font-label-sm text-label-sm hover:text-on-surface transition-all text-center">Bulan Ini</button>
+</div>
+<!-- Activity Items List -->
+<div class="flex flex-col gap-space-xs mt-1">
+<!-- Log Item 1 -->
+<div class="p-space-sm rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-2xs">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="flex flex-col min-w-0">
+<h4 class="font-headline-sm text-headline-sm text-on-surface truncate">Shalawat Nariyah 4.444x</h4>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Hari ini • 16:45 WIB</span>
+</div>
+<div class="flex flex-col items-end shrink-0">
+<span class="font-headline-sm text-headline-sm text-primary">+350</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">butir zikir</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs border-t border-surface-container/60 mt-1">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Majelis Berjalan (72%)</span>
+</div>
+<button class="px-space-xs py-1 rounded-lg bg-surface-container-low text-primary font-label-sm text-label-sm font-semibold hover:bg-surface-container transition-colors">
+              Ikut Lagi
+            </button>
+</div>
+</div>
+<!-- Log Item 2 -->
+<div class="p-space-sm rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-2xs">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="flex flex-col min-w-0">
+<h4 class="font-headline-sm text-headline-sm text-on-surface truncate">Hasbunallah Wa Ni'mal Wakil</h4>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Kemarin • 20:15 WIB</span>
+</div>
+<div class="flex flex-col items-end shrink-0">
+<span class="font-headline-sm text-headline-sm text-secondary">+1.000</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">butir zikir</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs border-t border-surface-container/60 mt-1">
+<div class="flex items-center gap-1.5 text-on-tertiary-container">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span class="font-label-sm text-label-sm font-semibold">Khatam Sempurna</span>
+</div>
+<button class="px-space-xs py-1 rounded-lg bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm hover:bg-surface-container transition-colors">
+              Lihat Berkah
+            </button>
+</div>
+</div>
+<!-- Log Item 3 -->
+<div class="p-space-sm rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-2xs">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="flex flex-col min-w-0">
+<h4 class="font-headline-sm text-headline-sm text-on-surface truncate">Istighfar 100.000x Tarhib</h4>
+<span class="font-label-sm text-label-sm text-on-surface-variant">2 hari lalu • 05:20 WIB</span>
+</div>
+<div class="flex flex-col items-end shrink-0">
+<span class="font-headline-sm text-headline-sm text-primary">+500</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">butir zikir</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs border-t border-surface-container/60 mt-1">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Majelis Berjalan (64%)</span>
+</div>
+<button class="px-space-xs py-1 rounded-lg bg-surface-container-low text-primary font-label-sm text-label-sm font-semibold hover:bg-surface-container transition-colors">
+              Ikut Lagi
+            </button>
+</div>
+</div>
+<!-- Log Item 4 -->
+<div class="p-space-sm rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-2xs">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="flex flex-col min-w-0">
+<h4 class="font-headline-sm text-headline-sm text-on-surface truncate">Sayyidul Istighfar Sore</h4>
+<span class="font-label-sm text-label-sm text-on-surface-variant">3 hari lalu • 17:30 WIB</span>
+</div>
+<div class="flex flex-col items-end shrink-0">
+<span class="font-headline-sm text-headline-sm text-secondary">+100</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">butir zikir</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs border-t border-surface-container/60 mt-1">
+<div class="flex items-center gap-1.5 text-on-tertiary-container">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span class="font-label-sm text-label-sm font-semibold">Khatam Sempurna</span>
+</div>
+<button class="px-space-xs py-1 rounded-lg bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm hover:bg-surface-container transition-colors">
+              Lihat Berkah
+            </button>
+</div>
+</div>
+</div>
+</section>
+<!-- 5. Tombol Aksi Cepat Bawah: Syiar & Kartu Istiqomah -->
+<div class="flex flex-col gap-space-xs pt-space-xs pb-space-sm">
+<button class="w-full h-12 rounded-xl bg-primary text-on-primary font-label-lg text-label-lg flex items-center justify-center gap-space-xs shadow-md hover:bg-primary-container transition-all active:scale-[0.98]" id="btnShareWhatsApp">
+<span class="material-symbols-outlined text-[20px]">share</span>
+<span>Bagikan Kartu Istiqomah ke WhatsApp</span>
+</button>
+<p class="text-center font-body-sm text-body-sm text-on-surface-variant text-[12px] px-space-md leading-relaxed">
+        Syiar tanpa riya’. Niatkan semata menyemangati keluarga &amp; sahabat untuk saling menjaga zikir harian.
+      </p>
+</div>
+</div>
+<!-- Micro-interaction Notification Toast (Hidden by Default) -->
+<div class="fixed bottom-20 left-1/2 -translate-x-1/2 max-w-[340px] w-full px-4 py-3 bg-inverse-surface text-inverse-on-surface rounded-xl shadow-xl flex items-center justify-between opacity-0 pointer-events-none transition-all duration-300 z-50" id="shareToast">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px]">check_circle</span>
+<span class="font-body-sm text-body-sm">Pesan Syiar Istiqomah disalin!</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary-fixed uppercase font-semibold">Buka WA</span>
+</div>
+<script>
+    (function() {
+      const shareBtn = document.getElementById('btnShareWhatsApp');
+      const syiarQuick = document.getElementById('btnSyiarQuick');
+      const toast = document.getElementById('shareToast');
+
+      function triggerShareSyiar() {
+        const textToShare = "Alhamdulillah, istiqomah zikir hari ke-14 bersama SatuZikir. Mari genapkan butir zikir harian bersama jamaah: https://satuzikir.id/j/ahmad-f";
+        
+        if (navigator.share) {
+          navigator.share({
+            title: 'Istiqomah Zikir Bersama SatuZikir',
+            text: textToShare,
+            url: 'https://satuzikir.id'
+          }).catch(() => {});
+        } else {
+          // Fallback feedback
+          if (toast) {
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+              toast.classList.add('opacity-0', 'pointer-events-none');
+              toast.classList.remove('opacity-100');
+            }, 2800);
+          }
+        }
+      }
+
+      if (shareBtn) shareBtn.addEventListener('click', triggerShareSyiar);
+      if (syiarQuick) syiarQuick.addEventListener('click', triggerShareSyiar);
+    })();
+  </script>
+</div></main><nav class="fixed bottom-0 w-full max-w-content-max-width z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-2px_12px_rgba(0,0,0,0.05)]" data-active-classes="text-primary font-semibold"><div class="flex justify-around items-center h-16 px-space-xs"><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-on-surface transition-colors" data-path="katalog" href="#"><span class="material-symbols-outlined text-[22px]">format_list_bulleted</span><span class="font-label-sm text-label-sm">Katalog</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-on-surface transition-colors" data-path="tasbih-live" href="#"><span class="material-symbols-outlined text-[22px]">radio_button_checked</span><span class="font-label-sm text-label-sm">Tasbih</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-on-surface transition-colors" data-path="hajat-dan-doa" href="#"><span class="material-symbols-outlined text-[22px]">favorite</span><span class="font-label-sm text-label-sm">Hajat &amp; Doa</span></a><a aria-current="page" class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 transition-colors text-primary font-semibold" data-path="kelola-zikir" href="#"><span class="material-symbols-outlined text-[22px]">tune</span><span class="font-label-sm text-label-sm">Admin</span></a></div></nav></div></body></html>

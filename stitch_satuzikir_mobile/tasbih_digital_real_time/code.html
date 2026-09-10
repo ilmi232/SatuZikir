@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+
+<html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;}body{overscroll-behavior-y:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { 'colors': { 'outline-variant': '#bfc9c3', 'inverse-on-surface': '#eef0ff', 'tertiary-container': '#004f34', 'background': '#faf8ff', 'on-surface-variant': '#404944', 'on-secondary': '#ffffff', 'secondary-fixed-dim': '#ffb77d', 'primary-container': '#064e3b', 'error': '#ba1a1a', 'primary-fixed-dim': '#95d3ba', 'on-secondary-fixed': '#2f1500', 'secondary': '#904d00', 'tertiary-fixed': '#6ffbbe', 'on-secondary-container': '#663500', 'surface-container-low': '#f2f3ff', 'on-surface': '#131b2e', 'on-tertiary-container': '#31c98f', 'error-container': '#ffdad6', 'surface-bright': '#faf8ff', 'primary': '#003527', 'on-error-container': '#93000a', 'inverse-primary': '#95d3ba', 'on-background': '#131b2e', 'outline': '#707974', 'primary-fixed': '#b0f0d6', 'on-error': '#ffffff', 'surface-dim': '#d2d9f4', 'secondary-container': '#fe932c', 'on-tertiary-fixed': '#002113', 'on-primary-fixed': '#002117', 'surface-container-highest': '#dae2fd', 'surface-container-lowest': '#ffffff', 'on-primary-container': '#80bea6', 'surface': '#faf8ff', 'surface-container': '#eaedff', 'on-secondary-fixed-variant': '#6e3900', 'surface-tint': '#2b6954', 'secondary-fixed': '#ffdcc3', 'on-tertiary': '#ffffff', 'on-primary': '#ffffff', 'tertiary': '#003623', 'on-primary-fixed-variant': '#0b513d', 'inverse-surface': '#283044', 'surface-variant': '#dae2fd', 'on-tertiary-fixed-variant': '#005236', 'tertiary-fixed-dim': '#4edea3', 'surface-container-high': '#e2e7ff' }, 'borderRadius': { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, 'spacing': { 'space-md': '1rem', 'space-3xl': '4rem', 'space-2xl': '3rem', 'space-sm': '0.75rem', 'content-max-width': '480px', 'space-xs': '0.5rem', 'space-lg': '1.5rem', 'space-2xs': '0.25rem', 'gutter-mobile': '1rem', 'gutter-desktop': '2rem', 'space-xl': '2rem' }, 'fontFamily': { 'body-lg': ['Plus Jakarta Sans'], 'body-md': ['Plus Jakarta Sans'], 'display-lg-mobile': ['EB Garamond'], 'display-lg': ['EB Garamond'], 'label-sm': ['Plus Jakarta Sans'], 'headline-lg': ['EB Garamond'], 'headline-sm': ['EB Garamond'], 'body-sm': ['Plus Jakarta Sans'], 'label-md': ['Plus Jakarta Sans'], 'label-lg': ['Plus Jakarta Sans'], 'headline-md': ['EB Garamond'] }, 'fontSize': { 'body-lg': ['18px', { 'lineHeight': '28px', 'fontWeight': '400' }], 'body-md': ['16px', { 'lineHeight': '24px', 'fontWeight': '400' }], 'display-lg-mobile': ['36px', { 'lineHeight': '44px', 'letterSpacing': '-0.01em', 'fontWeight': '500' }], 'display-lg': ['48px', { 'lineHeight': '56px', 'letterSpacing': '-0.01em', 'fontWeight': '500' }], 'label-sm': ['11px', { 'lineHeight': '14px', 'letterSpacing': '0.06em', 'fontWeight': '600' }], 'headline-lg': ['32px', { 'lineHeight': '40px', 'fontWeight': '600' }], 'headline-sm': ['20px', { 'lineHeight': '28px', 'fontWeight': '600' }], 'body-sm': ['14px', { 'lineHeight': '20px', 'fontWeight': '400' }], 'label-md': ['12px', { 'lineHeight': '16px', 'letterSpacing': '0.04em', 'fontWeight': '600' }], 'label-lg': ['14px', { 'lineHeight': '20px', 'letterSpacing': '0.02em', 'fontWeight': '600' }], 'headline-md': ['24px', { 'lineHeight': '32px', 'fontWeight': '600' }] } } } };</script></head><body class="bg-surface text-on-surface font-body-md text-body-md select-none"><div class="max-w-content-max-width mx-auto min-h-screen relative flex flex-col bg-surface shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><header class="fixed top-0 w-full max-w-content-max-width z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-20 px-space-md flex flex-col justify-center"><div class="flex items-center justify-between"><div class="flex items-center gap-space-xs"><img alt="SatuZikir Emblem Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XPQ3zIX-G_LRi5FlgqXp_jDxgYbj78kQFOR3QetwrSGUfiH9RsiycyHjwaovjuX8vgoVC_aaLq8z9Yx7tbX4qjQUn4_jkzhpWlwvVCpREWJxVHPPbGVpqZZ2dLo6sLcmuyUqSbVeAkvIyO5SF_GnAZikQz0bAW-4qJVB3ijukoZsUKm-1SJoeLkJUigsWZruzx_i6BbgNXeCCVYJ7lxbfMjhumJL_e-13cJkm9QjvdeWQZc9jsf0kuqbs_"/><div class="flex flex-col"><div class="flex items-center gap-space-2xs"><span class="font-headline-sm text-headline-sm text-primary tracking-tight">SatuZikir</span><span class="bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm px-space-xs py-0.5 rounded-full uppercase tracking-wider">Live Jamaah</span></div><div class="flex items-center gap-1.5 mt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container animate-pulse"></span><span class="font-label-sm text-label-sm text-on-surface-variant">Real-Time Sync Terhubung</span></div></div></div><div class="flex items-center gap-space-xs"><button aria-label="Notifikasi &amp; Siar" class="w-11 h-11 flex items-center justify-center rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"><span class="material-symbols-outlined text-[22px]">share</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></div></header><main class="flex flex-col relative w-full pt-20 pb-24 bg-surface"><div class="flex flex-col w-full">
+<!-- Campaign Context & Live Activity Ribbon -->
+<div class="px-space-md pt-space-xs pb-space-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<a class="inline-flex items-center gap-space-2xs text-on-surface-variant hover:text-primary transition-colors py-1" href="#">
+<span class="material-symbols-outlined text-[20px]">arrow_back</span>
+<span class="font-label-md text-label-md">Katalog Zikir</span>
+</a>
+<div class="inline-flex items-center gap-1.5 px-space-xs py-1 rounded-full bg-surface-container-high shadow-sm">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-on-tertiary-container opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-on-tertiary-container"></span>
+</span>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold tracking-normal" id="jamaah-count-badge">Live: 184 Jamaah</span>
+</div>
+</div>
+<div>
+<h1 class="font-headline-sm text-headline-sm text-primary leading-tight">Shalawat Nariyah 4.444x</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Niat bersama: Kesembuhan &amp; Kelapangan Saudara Kita</p>
+</div>
+</div>
+<!-- Global Target & Progress Card -->
+<div class="px-space-md mb-space-sm">
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-xs">
+<div class="flex justify-between items-baseline">
+<div class="flex items-center gap-space-2xs">
+<span class="material-symbols-outlined text-secondary text-[20px]" style="font-variation-settings: 'FILL' 1;">groups</span>
+<span class="font-label-md text-label-md text-on-surface">Progres Zikir Jamaah</span>
+</div>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-sm text-headline-sm text-primary font-bold tracking-tight" id="global-counter-display">3.120</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">/ 4.444</span>
+<span class="font-label-sm text-label-sm text-secondary font-bold ml-1" id="global-percentage-display">(70.2%)</span>
+</div>
+</div>
+<!-- Animated Progress Bar -->
+<div class="w-full h-3 rounded-full bg-surface-container-high overflow-hidden relative">
+<div class="h-full bg-gradient-to-r from-primary-container via-surface-tint to-secondary-container transition-all duration-300 rounded-full" id="progress-bar-fill" style="width: 70.2%;"></div>
+</div>
+<div class="flex justify-between items-center pt-0.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-tertiary-container">bolt</span>
+<span>Target Majelis Tercapai 70%</span>
+</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-on-tertiary-container">sync</span>
+<span id="sync-status-indicator">Sinkron Real-Time</span>
+</span>
+</div>
+</div>
+</div>
+<!-- Sacred Dhikr Folio (Lafadz, Transliterasi, Terjemah) -->
+<div class="px-space-md mb-space-sm">
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm relative overflow-hidden flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-secondary bg-secondary-fixed/50 px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+<span>Fadhilah Pelapang Hajat</span>
+</span>
+<button class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary flex items-center gap-0.5" id="toggle-card-details">
+<span id="details-text">Ringkas Bacaan</span>
+<span class="material-symbols-outlined text-[16px]" id="details-chevron">expand_less</span>
+</button>
+</div>
+<!-- Arabic Calligraphy Text -->
+<div class="text-right py-space-2xs">
+<p class="font-display-lg-mobile text-display-lg-mobile text-primary leading-[1.8] tracking-wide select-text dir-rtl font-medium" dir="rtl" style="font-family: 'EB Garamond', serif;">
+          اللَّهُمَّ صَلِّ صَلاَةً كَامِلَةً وَسَلِّمْ سَلاَمًا تَامًّا عَلَى سَيِّدِنَا مُحَمَّدٍ الَّذِي تَنْحَلُّ بِهِ الْعُقَدُ وَتَنْفَرِجُ بِهِ الْكُرَبُ
+        </p>
+</div>
+<!-- Expandable Transliteration & Meaning -->
+<div class="flex flex-col gap-space-2xs transition-all duration-300" id="dhikr-extended-details">
+<div class="bg-surface-container-low rounded-lg p-space-xs">
+<p class="font-label-sm text-label-sm text-secondary font-semibold uppercase tracking-wider mb-0.5">Transliterasi</p>
+<p class="font-body-sm text-body-sm text-on-surface italic leading-relaxed">
+            "Allâhumma shalli shalâtan kâmilatan wa sallim salâman tâmman 'alâ sayyidinâ Muhammadinilladzî tanhallu bihil 'uqadu wa tanfariju bihil kurabu..."
+          </p>
+</div>
+<div class="p-space-2xs">
+<p class="font-label-sm text-label-sm text-on-surface-variant font-medium leading-relaxed">
+<span class="font-semibold text-primary">Arti ringkas:</span> "Ya Allah, limpahkanlah shalawat yang sempurna dan keselamatan yang utuh kepada junjungan kami Nabi Muhammad, yang melaluinya terurai segala ikatan dan terangkat segala duka..."
+          </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Live Ticker Doa & Hajat Jamaah -->
+<div class="px-space-md mb-space-md">
+<div class="bg-surface-container-high/60 rounded-xl px-space-sm py-2 flex items-center gap-space-xs overflow-hidden shadow-sm">
+<div class="flex items-center gap-1 shrink-0 text-primary">
+<span class="material-symbols-outlined text-[18px] text-secondary" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="font-label-sm text-label-sm font-bold uppercase tracking-wider">Hajat Jamaah:</span>
+</div>
+<div class="relative overflow-hidden w-full h-5 flex items-center">
+<div class="w-full flex items-center transition-opacity duration-500" id="ticker-slide">
+<p class="font-label-sm text-label-sm text-on-surface truncate" id="ticker-text">
+<span class="font-semibold text-primary">Siti Aminah:</span> "Mohon kesembuhan berkah operasi Ibu di RS Sardjito..."
+          </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Interactive Thumb Tasbih Counter (Centerpiece) -->
+<div class="flex flex-col items-center justify-center px-space-md mb-space-md select-none">
+<!-- User Personal Contribution Counter -->
+<div class="flex flex-col items-center mb-space-sm">
+<div class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container-low mb-1 shadow-sm">
+<span class="material-symbols-outlined text-secondary text-[16px]">touch_app</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Kontribusi Pribadi Sesi Ini</span>
+</div>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-lg text-headline-lg text-primary font-bold tracking-tight" id="personal-counter-display">33</span>
+<span class="font-label-md text-label-md text-on-surface-variant">kali</span>
+</div>
+<!-- Optimistic batch syncing indicator -->
+<div class="flex items-center gap-1 text-on-surface-variant mt-0.5">
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-secondary" id="sync-dot"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant" id="batch-status-text">Sinkron ke cloud tiap 5 klik (2/5)</span>
+</div>
+</div>
+<!-- Sacred Thumb Tap Button with Halos -->
+<div class="relative flex items-center justify-center">
+<!-- Ambient Outer Pulse Rings -->
+<div class="absolute w-56 h-56 rounded-full bg-secondary-fixed/20 blur-md pointer-events-none transition-transform duration-300" id="halo-ring-outer"></div>
+<div class="absolute w-48 h-48 rounded-full bg-primary-fixed/30 blur-sm pointer-events-none transition-transform duration-200" id="halo-ring-inner"></div>
+<!-- Dynamic Tap Feedback Counter Float -->
+<div class="absolute inset-0 pointer-events-none overflow-visible" id="floating-tap-indicators"></div>
+<!-- Interactive Big Circular Button -->
+<button aria-label="Ketuk tombol tasbih untuk menambah zikir bersama" class="relative w-44 h-44 rounded-full bg-gradient-to-b from-primary to-primary-container text-on-primary shadow-xl flex flex-col items-center justify-center active:scale-95 transition-all duration-150 cursor-pointer overflow-hidden group focus:outline-none" id="tasbih-touch-button">
+<!-- Gold manuscript rim ring simulation -->
+<span class="absolute inset-1 rounded-full bg-transparent shadow-[inset_0_0_0_2px_rgba(254,147,44,0.35)] pointer-events-none"></span>
+<!-- Geometric subtle pattern overlay -->
+<div class="absolute inset-0 opacity-10 flex items-center justify-center pointer-events-none">
+<svg class="w-full h-full text-secondary-fixed stroke-current" fill="none" viewbox="0 0 100 100">
+<circle cx="50" cy="50" r="45" stroke-width="1"></circle>
+<circle cx="50" cy="50" r="32" stroke-width="1"></circle>
+<rect height="50" stroke-width="1" transform="rotate(45 50 50)" width="50" x="25" y="25"></rect>
+</svg>
+</div>
+<span class="material-symbols-outlined text-[36px] text-secondary-fixed-dim mb-1 group-hover:scale-110 transition-transform">fingerprint</span>
+<span class="font-headline-sm text-headline-sm text-on-primary font-bold tracking-wider">TAP</span>
+<span class="font-label-sm text-label-sm text-on-primary-container tracking-widest uppercase">Zikir</span>
+</button>
+</div>
+</div>
+<!-- Settings & Action Folio Bar -->
+<div class="px-space-md flex flex-col gap-space-xs mb-space-lg">
+<!-- Utility Switches (Haptic & Audio) -->
+<div class="bg-surface-container-low rounded-xl p-space-xs flex items-center justify-around shadow-sm">
+<button aria-pressed="true" class="flex items-center gap-1.5 px-space-xs py-1 rounded-lg text-primary hover:bg-surface transition-colors" id="toggle-haptic">
+<span class="material-symbols-outlined text-[20px]" id="haptic-icon">vibration</span>
+<span class="font-label-sm text-label-sm font-semibold" id="haptic-status-label">Getar: ON</span>
+</button>
+<span class="w-px h-5 bg-outline-variant/40"></span>
+<button aria-pressed="true" class="flex items-center gap-1.5 px-space-xs py-1 rounded-lg text-primary hover:bg-surface transition-colors" id="toggle-sound">
+<span class="material-symbols-outlined text-[20px]" id="sound-icon">volume_up</span>
+<span class="font-label-sm text-label-sm font-semibold" id="sound-status-label">Suara: ON</span>
+</button>
+</div>
+<!-- Dual Actions: Kirim Hajat & Share Whatsapp -->
+<div class="grid grid-cols-2 gap-space-xs pt-1">
+<button class="h-12 rounded-lg bg-surface-container-lowest text-primary font-label-md text-label-md flex items-center justify-center gap-1.5 shadow-sm hover:bg-surface-container transition-all" id="btn-modal-hajat">
+<span class="material-symbols-outlined text-[20px] text-secondary">edit_note</span>
+<span>Kirim Hajat</span>
+</button>
+<a class="h-12 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md flex items-center justify-center gap-1.5 shadow-sm hover:opacity-95 transition-opacity" href="https://api.whatsapp.com/send?text=Mari%20bersama-sama%20melantunkan%20Shalawat%20Nariyah%204.444x%20untuk%20kesembuhan%20saudara%20kita.%20Gabung%20ruang%20zikir%20live:%20https://satuzikir.id/live/nariyah" id="btn-share-wa" target="_blank">
+<span class="material-symbols-outlined text-[20px]">share</span>
+<span>Ajak Berzikir</span>
+</a>
+</div>
+</div>
+<!-- Bottom Drawer Modal for Submitting Hajat -->
+<div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm z-50 hidden flex-col justify-end transition-opacity" id="hajat-dialog-backdrop">
+<div class="max-w-content-max-width mx-auto w-full bg-surface-container-lowest rounded-t-2xl p-space-md flex flex-col gap-space-sm shadow-2xl">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[22px]">favorite</span>
+<span class="font-headline-sm text-headline-sm text-primary">Titip Hajat &amp; Doa Jamaah</span>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface" id="close-modal-hajat">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+        Hajat Anda akan ditampilkan pada running banner live room agar di-aamiin-kan oleh ribuan jamaah yang sedang berzikir.
+      </p>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-semibold" for="input-nama">Nama / Hamba Allah</label>
+<input class="bg-surface-container-low text-on-surface font-body-sm text-body-sm px-space-sm py-2 rounded-lg focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-primary" id="input-nama" placeholder="Contoh: Fulan bin Fulan" type="text"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-semibold" for="input-hajat">Permohonan Doa</label>
+<textarea class="bg-surface-container-low text-on-surface font-body-sm text-body-sm px-space-sm py-2 rounded-lg focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-primary resize-none" id="input-hajat" placeholder="Tuliskan hajat kesembuhan, kelancaran rezeki, atau doa terbaik..." rows="3"></textarea>
+</div>
+<div class="flex gap-space-xs pt-1">
+<button class="w-full h-11 rounded-lg bg-primary text-on-primary font-label-md text-label-md flex items-center justify-center gap-1.5" id="submit-hajat-btn">
+<span class="material-symbols-outlined text-[18px]">send</span>
+<span>Kirimkan ke Majelis</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    // Component state
+    let personalCount = 33;
+    let globalCount = 3120;
+    const globalTarget = 4444;
+    let batchCounter = 2;
+    const batchLimit = 5;
+    let isHapticOn = true;
+    let isAudioOn = true;
+
+    // Web Audio API Synth click sound
+    let audioCtx = null;
+    function playGentleClick() {
+      if (!isAudioOn) return;
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(580, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(320, audioCtx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.06);
+      } catch (e) {
+        // Fallback or permission blocked
+      }
+    }
+
+    // Elements
+    const tasbihBtn = document.getElementById('tasbih-touch-button');
+    const personalDisplay = document.getElementById('personal-counter-display');
+    const globalDisplay = document.getElementById('global-counter-display');
+    const percentageDisplay = document.getElementById('global-percentage-display');
+    const progressBar = document.getElementById('progress-bar-fill');
+    const batchStatusText = document.getElementById('batch-status-text');
+    const floatingIndicators = document.getElementById('floating-tap-indicators');
+    const haloOuter = document.getElementById('halo-ring-outer');
+
+    // Tap Interaction
+    function handleTasbihTap(e) {
+      if (e) e.preventDefault();
+
+      // Audio & Haptics
+      playGentleClick();
+      if (isHapticOn && navigator.vibrate) {
+        navigator.vibrate(25);
+      }
+
+      // Increment counters
+      personalCount += 1;
+      globalCount += 1;
+      batchCounter += 1;
+
+      personalDisplay.textContent = personalCount;
+      globalDisplay.textContent = globalCount.toLocaleString('id-ID');
+
+      // Update progress
+      const percent = Math.min(100, (globalCount / globalTarget) * 100);
+      percentageDisplay.textContent = '(' + percent.toFixed(1) + '%)';
+      progressBar.style.width = percent.toFixed(1) + '%';
+
+      // Halo bounce feedback
+      if (haloOuter) {
+        haloOuter.style.transform = 'scale(1.15)';
+        setTimeout(() => {
+          haloOuter.style.transform = 'scale(1)';
+        }, 150);
+      }
+
+      // Visual particle float effect (+1)
+      createFloatingCounter();
+
+      // Batch sync representation
+      if (batchCounter >= batchLimit) {
+        batchCounter = 0;
+        batchStatusText.textContent = 'Menyinkronkan batch ke server...';
+        const syncBadge = document.getElementById('sync-status-indicator');
+        if (syncBadge) syncBadge.textContent = 'Syncing...';
+        setTimeout(() => {
+          batchStatusText.textContent = 'Tersinkronisasi otomatis setiap 5 klik (0/' + batchLimit + ')';
+          if (syncBadge) syncBadge.textContent = 'Real-Time Sync';
+        }, 600);
+      } else {
+        batchStatusText.textContent = 'Tersinkronisasi otomatis setiap 5 klik (' + batchCounter + '/' + batchLimit + ')';
+      }
+    }
+
+    function createFloatingCounter() {
+      if (!floatingIndicators) return;
+      const el = document.createElement('div');
+      el.textContent = '+1';
+      el.className = 'absolute font-headline-sm text-headline-sm text-secondary-fixed font-bold pointer-events-none transition-all duration-700 ease-out';
+      // Randomize position slightly
+      const randomX = Math.floor(Math.random() * 40) - 20;
+      el.style.left = `calc(50% + ${randomX}px)`;
+      el.style.top = '40%';
+      el.style.opacity = '1';
+      el.style.transform = 'translate(-50%, -50%) scale(1)';
+      floatingIndicators.appendChild(el);
+
+      requestAnimationFrame(() => {
+        el.style.top = '10%';
+        el.style.opacity = '0';
+        el.style.transform = 'translate(-50%, -80%) scale(1.4)';
+      });
+
+      setTimeout(() => {
+        el.remove();
+      }, 750);
+    }
+
+    if (tasbihBtn) {
+      tasbihBtn.addEventListener('pointerdown', handleTasbihTap);
+    }
+
+    // Toggle Details Accordion
+    const toggleDetailsBtn = document.getElementById('toggle-card-details');
+    const detailsContainer = document.getElementById('dhikr-extended-details');
+    const chevronIcon = document.getElementById('details-chevron');
+    const detailsText = document.getElementById('details-text');
+    let isDetailsExpanded = true;
+
+    if (toggleDetailsBtn && detailsContainer) {
+      toggleDetailsBtn.addEventListener('click', () => {
+        isDetailsExpanded = !isDetailsExpanded;
+        if (isDetailsExpanded) {
+          detailsContainer.classList.remove('hidden');
+          chevronIcon.textContent = 'expand_less';
+          detailsText.textContent = 'Ringkas Bacaan';
+        } else {
+          detailsContainer.classList.add('hidden');
+          chevronIcon.textContent = 'expand_more';
+          detailsText.textContent = 'Buka Latin & Arti';
+        }
+      });
+    }
+
+    // Haptic & Sound Toggles
+    const toggleHapticBtn = document.getElementById('toggle-haptic');
+    const hapticLabel = document.getElementById('haptic-status-label');
+    const hapticIcon = document.getElementById('haptic-icon');
+
+    if (toggleHapticBtn) {
+      toggleHapticBtn.addEventListener('click', () => {
+        isHapticOn = !isHapticOn;
+        toggleHapticBtn.setAttribute('aria-pressed', isHapticOn ? 'true' : 'false');
+        hapticLabel.textContent = isHapticOn ? 'Getar: ON' : 'Getar: OFF';
+        hapticIcon.textContent = isHapticOn ? 'vibration' : 'smartphone';
+        if (isHapticOn && navigator.vibrate) navigator.vibrate(30);
+      });
+    }
+
+    const toggleSoundBtn = document.getElementById('toggle-sound');
+    const soundLabel = document.getElementById('sound-status-label');
+    const soundIcon = document.getElementById('sound-icon');
+
+    if (toggleSoundBtn) {
+      toggleSoundBtn.addEventListener('click', () => {
+        isAudioOn = !isAudioOn;
+        toggleSoundBtn.setAttribute('aria-pressed', isAudioOn ? 'true' : 'false');
+        soundLabel.textContent = isAudioOn ? 'Suara: ON' : 'Suara: OFF';
+        soundIcon.textContent = isAudioOn ? 'volume_up' : 'volume_off';
+      });
+    }
+
+    // Dynamic Doa / Hajat Running Ticker
+    const tickerItems = [
+      { name: "Siti Aminah", doa: "Mohon kesembuhan berkah operasi Ibu di RS Sardjito..." },
+      { name: "Ahmad Fauzi", doa: "Semoga dimudahkan kelulusan ujian dan kelapangan rezeki..." },
+      { name: "Hamba Allah (Surabaya)", doa: "Doa bersama untuk kesembuhan Bapak Hendra bin Kasim..." },
+      { name: "Nurul Hidayah", doa: "Diberi ketenangan batin dan keharmonisan keluarga tercinta..." },
+      { name: "Rian Prasetyo", doa: "Kelancaran ikhtiar usaha serta keselamatan dunia akhirat..." }
+    ];
+    let tickerIndex = 0;
+    const tickerTextEl = document.getElementById('ticker-text');
+    const tickerSlide = document.getElementById('ticker-slide');
+
+    setInterval(() => {
+      if (!tickerTextEl || !tickerSlide) return;
+      tickerSlide.style.opacity = '0';
+      setTimeout(() => {
+        tickerIndex = (tickerIndex + 1) % tickerItems.length;
+        const item = tickerItems[tickerIndex];
+        tickerTextEl.innerHTML = `<span class="font-semibold text-primary">${item.name}:</span> "${item.doa}"`;
+        tickerSlide.style.opacity = '1';
+      }, 400);
+    }, 4500);
+
+    // Modal Kirim Hajat Handling
+    const btnOpenHajat = document.getElementById('btn-modal-hajat');
+    const btnCloseHajat = document.getElementById('close-modal-hajat');
+    const modalHajat = document.getElementById('hajat-dialog-backdrop');
+    const btnSubmitHajat = document.getElementById('submit-hajat-btn');
+    const inputNama = document.getElementById('input-nama');
+    const inputHajat = document.getElementById('input-hajat');
+
+    function openHajatModal() {
+      if (!modalHajat) return;
+      modalHajat.classList.remove('hidden');
+      modalHajat.classList.add('flex');
+    }
+
+    function closeHajatModal() {
+      if (!modalHajat) return;
+      modalHajat.classList.add('hidden');
+      modalHajat.classList.remove('flex');
+    }
+
+    if (btnOpenHajat) btnOpenHajat.addEventListener('click', openHajatModal);
+    if (btnCloseHajat) btnCloseHajat.addEventListener('click', closeHajatModal);
+    if (modalHajat) {
+      modalHajat.addEventListener('click', (e) => {
+        if (e.target === modalHajat) closeHajatModal();
+      });
+    }
+
+    if (btnSubmitHajat) {
+      btnSubmitHajat.addEventListener('click', () => {
+        const namaVal = inputNama.value.trim() || 'Hamba Allah';
+        const hajatVal = inputHajat.value.trim();
+        if (!hajatVal) {
+          inputHajat.focus();
+          return;
+        }
+
+        // Insert immediately into ticker
+        tickerItems.splice(tickerIndex + 1, 0, { name: namaVal, doa: hajatVal });
+        inputNama.value = '';
+        inputHajat.value = '';
+        closeHajatModal();
+
+        // Brief notification
+        if (batchStatusText) {
+          batchStatusText.textContent = 'Hajat Anda berhasil disiarkan ke Majelis';
+          setTimeout(() => {
+            batchStatusText.textContent = 'Tersinkronisasi otomatis setiap 5 klik (' + batchCounter + '/' + batchLimit + ')';
+          }, 2500);
+        }
+      });
+    }
+
+    // Occasional simulated jamaah global tick for authentic community feel
+    setInterval(() => {
+      globalCount += Math.floor(Math.random() * 3) + 1;
+      globalDisplay.textContent = globalCount.toLocaleString('id-ID');
+      const percent = Math.min(100, (globalCount / globalTarget) * 100);
+      percentageDisplay.textContent = '(' + percent.toFixed(1) + '%)';
+      progressBar.style.width = percent.toFixed(1) + '%';
+    }, 4200);
+
+  })();
+</script></main><nav class="fixed bottom-0 w-full max-w-content-max-width z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-2px_12px_rgba(0,0,0,0.05)]" data-active-classes="text-primary font-semibold"><div class="flex justify-around items-center h-16 px-space-xs"><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-on-surface transition-colors" data-path="katalog" href="#"><span class="material-symbols-outlined text-[22px]">format_list_bulleted</span><span class="font-label-sm text-label-sm">Katalog</span></a><a aria-current="page" class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 transition-colors text-primary font-semibold" data-path="tasbih-live" href="#"><span class="material-symbols-outlined text-[22px]">radio_button_checked</span><span class="font-label-sm text-label-sm">Tasbih</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-on-surface transition-colors" data-path="hajat-dan-doa" href="#"><span class="material-symbols-outlined text-[22px]">favorite</span><span class="font-label-sm text-label-sm">Hajat &amp; Doa</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-on-surface transition-colors" data-path="kelola-zikir" href="#"><span class="material-symbols-outlined text-[22px]">tune</span><span class="font-label-sm text-label-sm">Admin</span></a></div></nav></div></body></html>

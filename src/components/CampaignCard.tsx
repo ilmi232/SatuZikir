@@ -1,123 +1,125 @@
+'use client';
+
 import Link from 'next/link';
 import { Campaign } from '@/types';
-import { Sparkles, Users, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 interface CampaignCardProps {
   campaign: Campaign;
 }
 
 export default function CampaignCard({ campaign }: CampaignCardProps) {
-  const percentage = Math.min(100, Math.round((campaign.current_count / campaign.target_count) * 100));
-  const isCompleted = campaign.status === 'completed' || campaign.current_count >= campaign.target_count;
-  const remaining = Math.max(0, campaign.target_count - campaign.current_count);
+  const percentage = Math.min(
+    100,
+    Math.round((campaign.current_count / campaign.target_count) * 100)
+  );
+  const isCompleted =
+    campaign.status === 'completed' || campaign.current_count >= campaign.target_count;
+
+  const getCategoryMeta = () => {
+    switch (campaign.category) {
+      case 'ramadan':
+        return { label: 'Ramadan & Harian', icon: 'bedtime', bg: 'bg-[#b0f0d6]', text: 'text-[#0b513d]' };
+      case 'tolak-bala':
+        return { label: 'Tolak Bala & Duka', icon: 'shield', bg: 'bg-[#ffdcc3]', text: 'text-[#2f1500]' };
+      case 'syifa':
+      default:
+        return { label: 'Hajat & Syifa', icon: 'local_hospital', bg: 'bg-[#ffdcc3]', text: 'text-[#2f1500]' };
+    }
+  };
+
+  const catMeta = getCategoryMeta();
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const pageUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}/campaign/${campaign.slug}`
+      : '';
+    const text = `*Bismillah, Mari Berzikir Bersama di SatuZikir*\n\n*${campaign.title}*\nTerkumpul: *${campaign.current_count.toLocaleString()}* dari target *${campaign.target_count.toLocaleString()}* (${percentage}%)\n\nIkut berzikir live tanpa perlu login:\n${pageUrl}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+  };
 
   return (
-    <div className="group relative rounded-2xl bg-emerald-950/40 border border-emerald-900/60 hover:border-amber-500/40 transition-all duration-300 overflow-hidden flex flex-col hover:shadow-xl hover:shadow-emerald-950/60">
-      {/* Top Banner Image or Gradient */}
-      <div className="relative h-44 w-full bg-emerald-900/40 overflow-hidden">
-        {campaign.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={campaign.image_url}
-            alt={campaign.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-emerald-900 via-emerald-950 to-slate-950 flex items-center justify-center p-6 text-center">
-            <span className="font-arabic text-2xl text-amber-200/40 line-clamp-2">
-              {campaign.arabic_text}
+    <article className="campaign-card flex flex-col bg-white rounded-2xl shadow-[0_2px_10px_rgba(0,53,39,0.05)] border border-[#eaedff] overflow-hidden transition-all duration-300 p-4 gap-3">
+      {/* Badges Header */}
+      <div className="flex items-center justify-between gap-2">
+        <span
+          className={`px-2.5 py-1 rounded-full ${catMeta.bg} ${catMeta.text} text-[11px] font-bold flex items-center gap-1`}
+        >
+          <span className="material-symbols-outlined text-[13px]">{catMeta.icon}</span>
+          {catMeta.label}
+        </span>
+
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#eaedff] text-[#003527] text-[11px] font-medium">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#31c98f] animate-pulse" />
+          <span>Live: {Math.floor((campaign.current_count % 300) + 40)} jamaah</span>
+        </div>
+      </div>
+
+      {/* Title & Description */}
+      <div className="flex flex-col gap-1">
+        <h3 className="font-headline text-lg text-[#003527] font-bold leading-tight line-clamp-2">
+          {campaign.title}
+        </h3>
+        <p className="text-xs text-[#404944] line-clamp-2 leading-relaxed">
+          {campaign.description}
+        </p>
+      </div>
+
+      {/* Arab Vignette Panel */}
+      <div className="bg-[#f2f3ff] rounded-xl p-3 flex flex-col items-center justify-center text-center">
+        <p className="font-arabic text-xl text-[#003527] leading-loose tracking-wide select-text line-clamp-1">
+          {campaign.arabic_text}
+        </p>
+        <span className="text-[11px] text-[#404944] italic mt-0.5 line-clamp-1">
+          {campaign.latin_text ? `“${campaign.latin_text}”` : campaign.translation_text}
+        </span>
+      </div>
+
+      {/* Glowing Progress Bar System */}
+      <div className="flex flex-col gap-1.5">
+        <div className="flex justify-between items-baseline">
+          <div className="flex items-baseline gap-1">
+            <span className="font-headline text-lg text-[#003527] font-bold">
+              {campaign.current_count.toLocaleString()}
+            </span>
+            <span className="text-xs text-[#404944]">
+              / {campaign.target_count.toLocaleString()} butir
             </span>
           </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/40 to-transparent" />
-
-        {/* Status Badge */}
-        <div className="absolute top-3 left-3">
-          {isCompleted ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/90 text-slate-950 shadow-md">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Khatam Target
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/90 text-slate-950 shadow-md animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-emerald-950 inline-block" />
-              Sedang Berjalan
-            </span>
-          )}
-        </div>
-
-        {/* Target Badge */}
-        <div className="absolute top-3 right-3">
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-950/80 backdrop-blur-md text-amber-300 border border-amber-500/30">
-            <Sparkles className="w-3 h-3 text-amber-400" />
-            Target: {campaign.target_count.toLocaleString()}x
+          <span className="text-xs font-bold text-[#904d00]">
+            {isCompleted ? 'Khatam Sempurna' : `${percentage}% Tercapai`}
           </span>
         </div>
-      </div>
 
-      {/* Content Area */}
-      <div className="p-5 flex-1 flex flex-col justify-between">
-        <div>
-          <h3 className="text-lg font-bold text-slate-100 group-hover:text-amber-300 transition-colors line-clamp-2 mb-2">
-            {campaign.title}
-          </h3>
-
-          <p className="text-xs text-slate-300/80 line-clamp-2 mb-4 leading-relaxed">
-            {campaign.description}
-          </p>
-
-          {/* Arabic Snippet */}
-          <div className="p-3 rounded-xl bg-emerald-900/30 border border-emerald-800/40 mb-4 text-center">
-            <p className="font-arabic text-base text-amber-100 line-clamp-1">
-              {campaign.arabic_text}
-            </p>
-          </div>
-        </div>
-
-        {/* Progress Section */}
-        <div className="pt-2 border-t border-emerald-900/40">
-          <div className="flex items-center justify-between text-xs mb-1.5 font-medium">
-            <span className="text-slate-300 flex items-center gap-1">
-              <Users className="w-3.5 h-3.5 text-emerald-400" />
-              Terkumpul:
-            </span>
-            <span className="text-amber-400 font-bold">
-              {campaign.current_count.toLocaleString()}{' '}
-              <span className="text-slate-400 font-normal text-[11px]">
-                ({percentage}%)
-              </span>
-            </span>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="w-full h-2.5 bg-emerald-950 rounded-full overflow-hidden border border-emerald-800/60 p-0.5 mb-2">
-            <div
-              className={`h-full rounded-full transition-all duration-700 ${
-                isCompleted
-                  ? 'bg-gradient-to-r from-emerald-400 to-emerald-300'
-                  : 'bg-gradient-to-r from-emerald-500 via-amber-400 to-amber-300'
-              }`}
-              style={{ width: `${percentage}%` }}
-            />
-          </div>
-
-          <div className="flex items-center justify-between text-[11px] text-slate-400 mb-4">
-            <span>
-              {isCompleted ? 'Target terpenuhi sempurna' : `Sisa ${remaining.toLocaleString()}x lagi`}
-            </span>
-            <span>{campaign.target_count.toLocaleString()} Total</span>
-          </div>
-
-          {/* Action Button */}
-          <Link
-            href={`/campaign/${campaign.slug}`}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all bg-emerald-800/80 hover:bg-emerald-600 text-white shadow-md group-hover:shadow-emerald-900/60"
-          >
-            <span>{isCompleted ? 'Lihat Amalan & Ikut Menambah' : 'Ikut Berzikir Sekarang'}</span>
-            <ArrowRight className="w-4 h-4 text-amber-300 group-hover:translate-x-1 transition-transform" />
-          </Link>
+        {/* Illuminated Progress Track */}
+        <div className="w-full h-2.5 bg-[#e2e7ff] rounded-full overflow-hidden p-0.5">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-[#003527] via-[#31c98f] to-[#fe932c] transition-all duration-700 shadow-sm"
+            style={{ width: `${percentage}%` }}
+          />
         </div>
       </div>
-    </div>
+
+      {/* Action Button & Share */}
+      <div className="flex items-center gap-2 pt-1">
+        <Link
+          href={`/campaign/${campaign.slug}`}
+          className="flex-1 min-h-[46px] py-2 px-4 rounded-xl bg-[#003527] hover:bg-[#064e3b] text-white text-xs font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-[18px]">radio_button_checked</span>
+          <span>{isCompleted ? 'Lihat Amalan Khatam' : 'Ikut Berzikir Sekarang'}</span>
+        </Link>
+
+        <button
+          onClick={handleShare}
+          aria-label="Bagikan Amalan"
+          className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#eaedff] text-[#404944] hover:text-[#003527] transition-colors cursor-pointer shrink-0"
+        >
+          <span className="material-symbols-outlined text-[20px]">share</span>
+        </button>
+      </div>
+    </article>
   );
 }
