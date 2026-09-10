@@ -17,12 +17,67 @@ export default function AdminHubPage() {
   const [targetCount, setTargetCount] = useState<number>(4444);
   const [arabicText, setArabicText] = useState('');
   const [latinText, setLatinText] = useState('');
+  const [translationText, setTranslationText] = useState('');
+  const [description, setDescription] = useState('');
   const [status, setStatus] = useState<'active' | 'draft'>('active');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // AI Prompt Generator states
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [aiSource, setAiSource] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiSuccessMsg, setAiSuccessMsg] = useState<string | null>(null);
 
   // Counter adjustment modal state
   const [selectedForReset, setSelectedForReset] = useState<Campaign | null>(null);
   const [newCountInput, setNewCountInput] = useState<number>(0);
+
+  const handleGenerateWithAi = async (promptToUse?: string) => {
+    const textPrompt = promptToUse || aiPrompt;
+    if (!textPrompt.trim()) return;
+
+    setIsGeneratingAi(true);
+    setAiError(null);
+    setAiSource(null);
+    setAiSuccessMsg(null);
+
+    try {
+      const res = await fetch('/api/ai/generate-campaign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: textPrompt.trim() }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success || !data.campaign) {
+        throw new Error(data.error || 'Gagal menghasilkan campaign.');
+      }
+
+      const c = data.campaign;
+      setTitle(c.title || '');
+      setTargetCount(Number(c.target_count) || 10000);
+      setCategory(c.category || 'syifa');
+      setArabicText(c.arabic_text || '');
+      setLatinText(c.latin_text || '');
+      setTranslationText(c.translation_text || '');
+      setDescription(c.description || '');
+      setAiSource(data.source === 'gemini-ai' ? 'Google Gemini AI' : 'SatuZikir Knowledge Engine');
+      setAiSuccessMsg('Campaign berhasil disusun oleh AI! Formulir di bawah telah terisi otomatis.');
+
+      // Scroll smoothly to the form
+      setTimeout(() => {
+        const formEl = document.getElementById('manual-campaign-form');
+        if (formEl) {
+          formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    } catch (err) {
+      setAiError((err as Error).message || 'Gagal memproses prompt AI.');
+    } finally {
+      setIsGeneratingAi(false);
+    }
+  };
 
   useEffect(() => {
     const isAuth = sessionStorage.getItem('satuzikir_admin_auth');
@@ -61,10 +116,10 @@ export default function AdminHubPage() {
         title: title.trim(),
         slug,
         category,
-        description: `Amalan zikir bersama jamaah SatuZikir untuk kemudahan dan keberkahan.`,
+        description: description.trim() || `Amalan zikir bersama jamaah SatuZikir untuk kemudahan dan keberkahan.`,
         arabic_text: arabicText.trim(),
         latin_text: latinText.trim(),
-        translation_text: latinText.trim(),
+        translation_text: translationText.trim() || latinText.trim(),
         target_count: Number(targetCount),
         current_count: 0,
         status,
@@ -73,6 +128,10 @@ export default function AdminHubPage() {
       setTitle('');
       setArabicText('');
       setLatinText('');
+      setTranslationText('');
+      setDescription('');
+      setAiSuccessMsg(null);
+      setAiSource(null);
       alert('Campaign Zikir Berhasil Didaftarkan & Disinkronkan!');
       await loadCampaigns();
     } catch {
@@ -257,8 +316,114 @@ export default function AdminHubPage() {
         </div>
       </div>
 
+      {/* 2.5. AI Campaign Generator (Powered by Gemini) */}
+      <div className="flex flex-col bg-gradient-to-br from-[#064e3b] via-[#003527] to-[#002117] p-4 rounded-2xl shadow-md text-white relative overflow-hidden space-y-3">
+        <div className="absolute -right-6 -bottom-6 w-36 h-36 rounded-full bg-[#31c98f]/10 blur-xl pointer-events-none" />
+        
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center text-[#ffdcc3]">
+              <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                auto_awesome
+              </span>
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <h2 className="font-headline text-base text-white font-bold leading-tight">
+                  Buat Campaign dengan AI
+                </h2>
+                <span className="px-1.5 py-0.5 bg-[#ffdcc3] text-[#2f1500] text-[9px] font-bold rounded-full uppercase tracking-wider">
+                  Gemini
+                </span>
+              </div>
+              <p className="text-[10px] text-[#95d3ba]">
+                Ketik instruksi hajat atau zikir, AI otomatis susun teks Arab & transliterasinya
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Prompt Input */}
+        <div className="flex flex-col space-y-2">
+          <textarea
+            rows={2}
+            value={aiPrompt}
+            onChange={(e) => setAiPrompt(e.target.value)}
+            placeholder="Contoh: Buat campaign zikir Hasbunallah 10.000x untuk tolak bala dan keselamatan warga..."
+            className="w-full bg-white/10 text-white placeholder:text-white/50 text-xs px-3 py-2 rounded-xl outline-none focus:bg-white/15 focus:ring-1 focus:ring-[#31c98f] resize-none border border-white/10"
+          />
+
+          {/* Quick Preset Prompt Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
+            {[
+              { label: '🌿 Shalawat Nariyah 4.444x', prompt: 'Buat campaign Shalawat Nariyah 4.444x untuk kelapangan hajat dan kesembuhan saudara yang sakit' },
+              { label: '🛡️ Hasbunallah 10.000x', prompt: 'Buat campaign Hasbunallah Wa Ni\'mal Wakil 10.000x untuk tolak bala, bencana, dan keselamatan umat' },
+              { label: '🤲 Istighfar 100.000x', prompt: 'Buat campaign Istighfar 100.000x pelebur dosa dan pembuka pintu rezeki berkah' },
+              { label: '🌙 Tibbil Qulub 1.000x', prompt: 'Buat campaign Shalawat Tibbil Qulub 1.000x obat penawar hati dan kesehatan jiwa raga' },
+            ].map((chip, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  setAiPrompt(chip.prompt);
+                  handleGenerateWithAi(chip.prompt);
+                }}
+                disabled={isGeneratingAi}
+                className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[10px] font-medium text-[#ffdcc3] whitespace-nowrap transition-colors cursor-pointer border border-white/5 shrink-0"
+              >
+                {chip.label}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => handleGenerateWithAi()}
+            disabled={isGeneratingAi || !aiPrompt.trim()}
+            className="w-full h-10 bg-[#ffdcc3] hover:bg-[#ffb77d] text-[#2f1500] text-xs font-bold rounded-xl shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-[0.98] cursor-pointer disabled:opacity-50"
+          >
+            {isGeneratingAi ? (
+              <>
+                <div className="w-4 h-4 rounded-full border-2 border-[#2f1500] border-t-transparent animate-spin" />
+                <span>Meramu Lafadz & Fadhilah via AI...</span>
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+                <span>Generate Format Lengkap dengan AI</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* AI Success Feedback */}
+        {aiSuccessMsg && (
+          <div className="p-2.5 rounded-xl bg-[#31c98f]/20 border border-[#31c98f]/30 flex items-start gap-2 text-xs text-[#b0f0d6] animate-in fade-in duration-200">
+            <span className="material-symbols-outlined text-[16px] text-[#31c98f] shrink-0 mt-0.5">
+              check_circle
+            </span>
+            <div className="flex flex-col">
+              <span className="font-bold">{aiSuccessMsg}</span>
+              <span className="text-[10px] text-[#95d3ba]">
+                Sumber: {aiSource || 'AI Engine'}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* AI Error Feedback */}
+        {aiError && (
+          <div className="p-2.5 rounded-xl bg-[#ba1a1a]/20 border border-[#ba1a1a]/30 flex items-center gap-2 text-xs text-[#ffdad6] animate-in fade-in duration-200">
+            <span className="material-symbols-outlined text-[16px] text-[#ffb4ab] shrink-0">
+              error
+            </span>
+            <span>{aiError}</span>
+          </div>
+        )}
+      </div>
+
       {/* 3. Form Cepat: Buat Campaign Baru */}
-      <div className="flex flex-col bg-white p-4 rounded-2xl shadow-sm border border-[#eaedff] space-y-3">
+      <div id="manual-campaign-form" className="flex flex-col bg-white p-4 rounded-2xl shadow-sm border border-[#eaedff] space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-[#b0f0d6] flex items-center justify-center text-[#003527]">
@@ -266,9 +431,9 @@ export default function AdminHubPage() {
             </div>
             <div>
               <h2 className="font-headline text-base text-[#131b2e] font-bold">
-                Buat Campaign Baru
+                Formulir Pendaftaran Campaign
               </h2>
-              <p className="text-[10px] text-[#404944]">Siarkan target wirid ke seluruh jamaah</p>
+              <p className="text-[10px] text-[#404944]">Tinjau dan sesuaikan detail sebelum publikasi</p>
             </div>
           </div>
           <span className="px-2 py-0.5 bg-[#ffdcc3] text-[#2f1500] text-[10px] font-bold rounded-full">
@@ -336,7 +501,7 @@ export default function AdminHubPage() {
               className="w-full bg-[#f2f3ff] text-[#131b2e] text-xs px-3 py-2 rounded-xl outline-none focus:bg-white focus:ring-1 focus:ring-[#003527] font-mono"
             />
             <div className="flex items-center gap-1.5 pt-1">
-              {[1000, 4444, 10000, 70000].map((preset) => (
+              {[1000, 4444, 10000, 70000, 100000].map((preset) => (
                 <button
                   key={preset}
                   type="button"
@@ -351,7 +516,7 @@ export default function AdminHubPage() {
 
           {/* Lafadz Arab */}
           <div className="flex flex-col space-y-1">
-            <label className="text-xs font-bold text-[#131b2e]">Teks Lafadz Arab *</label>
+            <label className="text-xs font-bold text-[#131b2e]">Teks Lafadz Arab (dengan Harakat) *</label>
             <input
               type="text"
               required
@@ -363,16 +528,44 @@ export default function AdminHubPage() {
             />
           </div>
 
-          {/* Latin */}
+          {/* Transliterasi Latin */}
           <div className="flex flex-col space-y-1">
             <label className="text-xs font-bold text-[#131b2e]">
-              Transliterasi Latin & Makna Singkat
+              Transliterasi Latin
             </label>
             <textarea
               rows={2}
               value={latinText}
               onChange={(e) => setLatinText(e.target.value)}
               placeholder="Allâhumma shalli 'alâ sayyidinâ Muhammadin..."
+              className="w-full bg-[#f2f3ff] text-[#131b2e] text-xs px-3 py-2 rounded-xl outline-none focus:bg-white focus:ring-1 focus:ring-[#003527] resize-none"
+            />
+          </div>
+
+          {/* Arti / Terjemahan */}
+          <div className="flex flex-col space-y-1">
+            <label className="text-xs font-bold text-[#131b2e]">
+              Arti / Terjemahan Bahasa Indonesia
+            </label>
+            <textarea
+              rows={2}
+              value={translationText}
+              onChange={(e) => setTranslationText(e.target.value)}
+              placeholder="Ya Allah, limpahkanlah rahmat kepada junjungan kami..."
+              className="w-full bg-[#f2f3ff] text-[#131b2e] text-xs px-3 py-2 rounded-xl outline-none focus:bg-white focus:ring-1 focus:ring-[#003527] resize-none"
+            />
+          </div>
+
+          {/* Deskripsi & Fadhilah */}
+          <div className="flex flex-col space-y-1">
+            <label className="text-xs font-bold text-[#131b2e]">
+              Deskripsi Hikmah & Fadhilah
+            </label>
+            <textarea
+              rows={2}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Penjelasan hikmah dan ajakan menyatukan niat zikir..."
               className="w-full bg-[#f2f3ff] text-[#131b2e] text-xs px-3 py-2 rounded-xl outline-none focus:bg-white focus:ring-1 focus:ring-[#003527] resize-none"
             />
           </div>
