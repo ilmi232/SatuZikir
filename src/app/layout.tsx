@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className="h-full bg-[#eaedff]">
+    <html lang="id" className="h-full bg-[#eaedff] dark:bg-black">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -41,11 +41,11 @@ export default function RootLayout({
   } catch(e) {}
 ` }} />
       </head>
-      <body className="min-h-full flex justify-center bg-[#eaedff] text-[#131b2e] antialiased">
+      <body className="min-h-full flex justify-center bg-[#eaedff] dark:bg-black text-[#131b2e] dark:text-[#e8f5e9] antialiased">
         {/* Mobile Viewport Container (Constrained strictly to 480px) */}
-        <div className="w-full max-w-[480px] min-h-screen relative flex flex-col bg-[#faf8ff] shadow-[0_2px_24px_rgba(0,53,39,0.08)]">
+        <div className="w-full max-w-[480px] min-h-screen relative flex flex-col bg-[#faf8ff] dark:bg-black shadow-[0_2px_24px_rgba(0,53,39,0.08)] dark:shadow-none">
           <MobileHeader />
-          <main className="flex-1 flex flex-col pt-16 pb-20 w-full bg-[#faf8ff]">
+          <main className="flex-1 flex flex-col pt-16 pb-20 w-full bg-[#faf8ff] dark:bg-black">
             {children}
           </main>
           <MobileNav />
