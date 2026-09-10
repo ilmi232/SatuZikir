@@ -316,44 +316,49 @@ export default function AdminHubPage() {
         </div>
       </div>
 
-      {/* 2.5. AI Campaign Generator (Powered by Gemini) */}
-      <div className="flex flex-col bg-gradient-to-br from-[#064e3b] via-[#003527] to-[#002117] p-4 rounded-2xl shadow-md text-white relative overflow-hidden space-y-3">
-        <div className="absolute -right-6 -bottom-6 w-36 h-36 rounded-full bg-[#31c98f]/10 blur-xl pointer-events-none" />
-        
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center text-[#ffdcc3]">
+      {/* 2.5. AI Campaign Generator (Apple iOS Glassmorphism) */}
+      <div className="relative overflow-hidden rounded-3xl p-5 backdrop-blur-2xl bg-white/70 dark:bg-[#0d1410]/75 border border-white/80 dark:border-white/[0.09] shadow-[0_8px_32px_rgba(0,53,39,0.06)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.45)] ring-1 ring-black/[0.03] dark:ring-white/[0.05] space-y-4 transition-all">
+        {/* Subtle Ambient Light Orbs */}
+        <div className="absolute -top-10 -right-10 w-44 h-44 bg-gradient-to-br from-[#31c98f]/20 via-[#ffdcc3]/15 to-transparent rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-gradient-to-tr from-[#003527]/10 via-[#31c98f]/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+
+        {/* Card Header */}
+        <div className="relative z-10 flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-b from-white to-white/50 dark:from-white/15 dark:to-white/5 border border-white/90 dark:border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex items-center justify-center text-[#003527] dark:text-[#4edea3] backdrop-blur-md">
               <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                 auto_awesome
               </span>
             </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <h2 className="font-headline text-base text-white font-bold leading-tight">
-                  Buat Campaign dengan AI
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <h2 className="font-headline text-lg font-bold text-[#131b2e] dark:text-[#f0fdf4] tracking-tight">
+                  Buat Campaign via AI
                 </h2>
-                <span className="px-1.5 py-0.5 bg-[#ffdcc3] text-[#2f1500] text-[9px] font-bold rounded-full uppercase tracking-wider">
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase bg-[#003527]/5 dark:bg-[#4edea3]/10 text-[#003527] dark:text-[#4edea3] border border-[#003527]/10 dark:border-[#4edea3]/20">
                   Gemini
                 </span>
               </div>
-              <p className="text-[10px] text-[#95d3ba]">
-                Ketik instruksi hajat atau zikir, AI otomatis susun teks Arab & transliterasinya
+              <p className="text-[11px] text-[#404944] dark:text-[#9cb8a2]">
+                Satu ketikan prompt, tersusun otomatis lafadz Arab berharakat & fadhilahnya
               </p>
             </div>
           </div>
         </div>
 
-        {/* Prompt Input */}
-        <div className="flex flex-col space-y-2">
-          <textarea
-            rows={2}
-            value={aiPrompt}
-            onChange={(e) => setAiPrompt(e.target.value)}
-            placeholder="Contoh: Buat campaign zikir Hasbunallah 10.000x untuk tolak bala dan keselamatan warga..."
-            className="w-full bg-white/10 text-white placeholder:text-white/50 text-xs px-3 py-2 rounded-xl outline-none focus:bg-white/15 focus:ring-1 focus:ring-[#31c98f] resize-none border border-white/10"
-          />
+        {/* Frosted Prompt Input Area */}
+        <div className="relative z-10 flex flex-col space-y-2.5">
+          <div className="relative">
+            <textarea
+              rows={2}
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              placeholder="Tuliskan hajat atau nama wirid... (misal: Shalawat Nariyah 4.444x untuk kesembuhan)"
+              className="w-full bg-white/70 dark:bg-white/[0.04] backdrop-blur-md text-[#131b2e] dark:text-[#f0fdf4] placeholder:text-[#404944]/45 dark:placeholder:text-[#9cb8a2]/40 text-xs px-3.5 py-3 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] focus:border-[#003527]/30 dark:focus:border-[#4edea3]/40 focus:bg-white dark:focus:bg-white/[0.08] focus:ring-4 focus:ring-[#003527]/5 dark:focus:ring-[#4edea3]/10 outline-none transition-all duration-200 resize-none"
+            />
+          </div>
 
-          {/* Quick Preset Prompt Chips */}
+          {/* iOS-Style Pill Capsules for Quick Inspiration */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
             {[
               { label: '🌿 Shalawat Nariyah 4.444x', prompt: 'Buat campaign Shalawat Nariyah 4.444x untuk kelapangan hajat dan kesembuhan saudara yang sakit' },
@@ -369,55 +374,56 @@ export default function AdminHubPage() {
                   handleGenerateWithAi(chip.prompt);
                 }}
                 disabled={isGeneratingAi}
-                className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[10px] font-medium text-[#ffdcc3] whitespace-nowrap transition-colors cursor-pointer border border-white/5 shrink-0"
+                className="px-3 py-1.5 rounded-full bg-white/80 dark:bg-white/[0.06] hover:bg-white dark:hover:bg-white/[0.12] text-[10px] font-semibold text-[#003527] dark:text-[#e8f5e9] border border-black/[0.05] dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.02)] backdrop-blur-md transition-all duration-150 cursor-pointer active:scale-95 shrink-0"
               >
                 {chip.label}
               </button>
             ))}
           </div>
 
+          {/* Primary Sleek Generate Button */}
           <button
             type="button"
             onClick={() => handleGenerateWithAi()}
             disabled={isGeneratingAi || !aiPrompt.trim()}
-            className="w-full h-10 bg-[#ffdcc3] hover:bg-[#ffb77d] text-[#2f1500] text-xs font-bold rounded-xl shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-[0.98] cursor-pointer disabled:opacity-50"
+            className="w-full h-11 rounded-2xl bg-[#003527] hover:bg-[#064e3b] dark:bg-[#4edea3] dark:hover:bg-[#31c98f] text-white dark:text-[#002117] text-xs font-bold shadow-[0_4px_16px_rgba(0,53,39,0.18)] dark:shadow-[0_4px_16px_rgba(78,222,163,0.2)] flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {isGeneratingAi ? (
               <>
-                <div className="w-4 h-4 rounded-full border-2 border-[#2f1500] border-t-transparent animate-spin" />
-                <span>Meramu Lafadz & Fadhilah via AI...</span>
+                <div className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                <span>Menyusun Format Lengkap...</span>
               </>
             ) : (
               <>
                 <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-                <span>Generate Format Lengkap dengan AI</span>
+                <span>Ramu Campaign dengan AI</span>
               </>
             )}
           </button>
         </div>
 
-        {/* AI Success Feedback */}
+        {/* AI Success Feedback Toast Banner */}
         {aiSuccessMsg && (
-          <div className="p-2.5 rounded-xl bg-[#31c98f]/20 border border-[#31c98f]/30 flex items-start gap-2 text-xs text-[#b0f0d6] animate-in fade-in duration-200">
-            <span className="material-symbols-outlined text-[16px] text-[#31c98f] shrink-0 mt-0.5">
-              check_circle
-            </span>
-            <div className="flex flex-col">
-              <span className="font-bold">{aiSuccessMsg}</span>
-              <span className="text-[10px] text-[#95d3ba]">
-                Sumber: {aiSource || 'AI Engine'}
+          <div className="relative z-10 p-3 rounded-2xl bg-[#004f34]/10 dark:bg-[#4edea3]/10 border border-[#004f34]/20 dark:border-[#4edea3]/25 backdrop-blur-md flex items-center justify-between gap-2 text-xs text-[#003527] dark:text-[#4edea3] animate-in fade-in duration-200">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="material-symbols-outlined text-[18px] shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>
+                check_circle
               </span>
+              <span className="font-semibold truncate">{aiSuccessMsg}</span>
             </div>
+            <span className="text-[10px] opacity-75 shrink-0 px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10 font-mono">
+              {aiSource || 'AI'}
+            </span>
           </div>
         )}
 
         {/* AI Error Feedback */}
         {aiError && (
-          <div className="p-2.5 rounded-xl bg-[#ba1a1a]/20 border border-[#ba1a1a]/30 flex items-center gap-2 text-xs text-[#ffdad6] animate-in fade-in duration-200">
-            <span className="material-symbols-outlined text-[16px] text-[#ffb4ab] shrink-0">
+          <div className="relative z-10 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 backdrop-blur-md flex items-center gap-2 text-xs text-red-700 dark:text-red-300 animate-in fade-in duration-200">
+            <span className="material-symbols-outlined text-[18px] shrink-0">
               error
             </span>
-            <span>{aiError}</span>
+            <span className="font-medium">{aiError}</span>
           </div>
         )}
       </div>
