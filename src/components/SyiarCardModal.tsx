@@ -417,7 +417,11 @@ export default function SyiarCardModal({
 
       ctx.fillStyle = goldText;
       ctx.font = 'bold 22px monospace';
-      ctx.fillText(shareUrl.replace('https://', ''), ctaX, qrBoxY + 225);
+      let displayUrl = shareUrl.replace(/^https?:\/\//, '');
+      if (displayUrl.length > 40) {
+        displayUrl = displayUrl.substring(0, 37) + '...';
+      }
+      ctx.fillText(displayUrl, ctaX, qrBoxY + 225);
     } catch (e) {
       console.error('Failed to generate QR Code for canvas:', e);
     }
