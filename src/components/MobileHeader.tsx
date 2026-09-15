@@ -23,7 +23,7 @@ export default function MobileHeader() {
   };
 
   return (
-    <header className={`fixed top-0 w-full max-w-[480px] z-50 pt-safe backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] border-b dark-mode-transition ${
+    <header className={`fixed top-0 w-full max-w-[480px] z-40 pt-safe backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] border-b dark-mode-transition ${
       theme === 'dark'
         ? 'bg-black/90 border-[#152017]'
         : 'bg-[#faf8ff]/90 border-[#eaedff]'
