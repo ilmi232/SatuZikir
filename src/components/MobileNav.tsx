@@ -12,8 +12,8 @@ export default function MobileNav() {
   const isAdmin = pathname.startsWith('/admin');
 
   return (
-    <nav className="fixed bottom-0 w-full max-w-[480px] z-40 pb-safe bg-[#faf8ff]/95 dark:bg-[#080d09]/95 backdrop-blur-xl shadow-[0_-2px_12px_rgba(0,0,0,0.05)] dark:shadow-[0_-2px_12px_rgba(0,0,0,0.5)] border-t border-[#eaedff] dark:border-[#1a2e1e]">
-      <div className="flex justify-around items-center h-16 px-1">
+    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[420px] rounded-[32px] z-40 glass-pill dark-mode-transition">
+      <div className="flex justify-around items-center h-16 px-2">
         {/* Tab 1: Katalog */}
         <Link
           href="/"

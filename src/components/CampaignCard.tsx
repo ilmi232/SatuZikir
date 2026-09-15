@@ -41,39 +41,39 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
   };
 
   return (
-    <article className="campaign-card flex flex-col bg-white rounded-2xl shadow-[0_2px_10px_rgba(0,53,39,0.05)] border border-[#eaedff] overflow-hidden transition-all duration-300 p-4 gap-3">
+    <article className="campaign-card flex flex-col glass-panel rounded-3xl overflow-hidden transition-all duration-300 p-5 gap-4">
       {/* Badges Header */}
       <div className="flex items-center justify-between gap-2">
         <span
-          className={`px-2.5 py-1 rounded-full ${catMeta.bg} ${catMeta.text} text-[11px] font-bold flex items-center gap-1`}
+          className={`px-3 py-1.5 rounded-full ${catMeta.bg} ${catMeta.text} text-[11px] font-bold flex items-center gap-1.5 backdrop-blur-md bg-opacity-70 dark:bg-opacity-20`}
         >
           <span className="material-symbols-outlined text-[13px]">{catMeta.icon}</span>
           {catMeta.label}
         </span>
 
-        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#eaedff] text-[#003527] text-[11px] font-medium">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#31c98f] animate-pulse" />
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/40 dark:bg-black/40 text-[#003527] dark:text-[#4edea3] text-[11px] font-medium backdrop-blur-sm border border-white/20">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
           <span>Majelis Live</span>
         </div>
       </div>
 
       {/* Title & Description */}
-      <div className="flex flex-col gap-1">
-        <h3 className="font-headline text-lg text-[#003527] font-bold leading-tight line-clamp-2">
+      <div className="flex flex-col gap-1.5">
+        <h3 className="font-headline text-[22px] text-[#003527] dark:text-[#f0fdf4] font-bold leading-tight line-clamp-2 drop-shadow-sm">
           {campaign.title}
         </h3>
-        <p className="text-xs text-[#404944] line-clamp-2 leading-relaxed">
+        <p className="text-xs text-[#404944] dark:text-gray-300 line-clamp-2 leading-relaxed">
           {campaign.description}
         </p>
       </div>
 
       {/* Arab Vignette Panel */}
-      <div className="bg-[#f2f3ff] rounded-xl p-3 flex flex-col items-center justify-center text-center">
-        <p className="font-arabic text-xl text-[#003527] leading-loose tracking-wide select-text line-clamp-1">
+      <div className="bg-white/30 dark:bg-black/30 backdrop-blur-md rounded-2xl p-4 flex flex-col items-center justify-center text-center border border-white/20 shadow-inner">
+        <p className="font-arabic text-2xl text-[#003527] dark:text-[#b0f0d6] leading-loose tracking-wide select-text line-clamp-1 drop-shadow-sm">
           {campaign.arabic_text}
         </p>
-        <span className="text-[11px] text-[#404944] italic mt-0.5 line-clamp-1">
-          {campaign.latin_text ? `“${campaign.latin_text}”` : campaign.translation_text}
+        <span className="text-[11px] text-[#404944] dark:text-gray-400 italic mt-1 line-clamp-1">
+          {campaign.latin_text ? `"${campaign.latin_text}"` : campaign.translation_text}
         </span>
       </div>
 

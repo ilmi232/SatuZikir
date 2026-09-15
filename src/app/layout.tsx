@@ -50,11 +50,19 @@ export default function RootLayout({
   } catch(e) {}
 ` }} />
       </head>
-      <body className="min-h-full flex justify-center bg-[#eaedff] dark:bg-black text-[#131b2e] dark:text-[#e8f5e9] antialiased" suppressHydrationWarning>
+      <body className="min-h-full flex justify-center bg-[#fdfcff] dark:bg-[#020503] text-[#131b2e] dark:text-[#e8f5e9] antialiased" suppressHydrationWarning>
+        {/* Ambient Glowing Mesh Background for Glassmorphism */}
+        <div className="fixed inset-0 z-[-1] pointer-events-none overflow-hidden flex justify-center bg-gradient-to-br from-[#fdfcff] to-[#eaedff] dark:from-[#020503] dark:to-[#05110a]">
+          {/* Dark mode intense glowing orbs */}
+          <div className="absolute top-[-10%] left-[-20%] w-[70vw] h-[70vw] rounded-full bg-emerald-500/20 dark:bg-[#31c98f]/15 blur-[80px] mix-blend-screen animate-aurora"></div>
+          <div className="absolute bottom-[-20%] right-[-10%] w-[80vw] h-[80vw] rounded-full bg-amber-500/20 dark:bg-[#fe932c]/15 blur-[100px] mix-blend-screen animate-aurora-alt"></div>
+          <div className="absolute top-[30%] left-[50%] w-[50vw] h-[50vw] rounded-full bg-blue-500/10 dark:bg-emerald-700/10 blur-[90px] mix-blend-screen animate-aurora" style={{animationDelay: '5s'}}></div>
+        </div>
+
         {/* Mobile Viewport Container (Constrained strictly to 480px) */}
-        <div className="w-full max-w-[480px] min-h-screen relative flex flex-col bg-[#faf8ff] dark:bg-black shadow-[0_2px_24px_rgba(0,53,39,0.08)] dark:shadow-none">
+        <div className="w-full max-w-[480px] min-h-screen relative flex flex-col bg-transparent shadow-[0_2px_40px_rgba(0,53,39,0.1)] dark:shadow-none">
           <MobileHeader />
-          <main className="flex-1 flex flex-col pt-16 pb-20 w-full bg-[#faf8ff] dark:bg-black">
+          <main className="flex-1 flex flex-col pt-16 pb-28 w-full bg-transparent">
             {children}
           </main>
           <MobileNav />

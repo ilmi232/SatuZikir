@@ -23,11 +23,7 @@ export default function MobileHeader() {
   };
 
   return (
-    <header className={`fixed top-0 w-full max-w-[480px] z-40 pt-safe backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] border-b dark-mode-transition ${
-      theme === 'dark'
-        ? 'bg-black/90 border-[#152017]'
-        : 'bg-[#faf8ff]/90 border-[#eaedff]'
-    }`}>
+    <header className="fixed top-0 w-full max-w-[480px] z-40 pt-safe glass-panel !border-l-0 !border-r-0 !border-t-0 !rounded-none shadow-sm dark-mode-transition">
       <div className="h-16 px-4 flex items-center justify-between">
         {/* Brand with Emblem Logo */}
         <Link href="/" className="flex items-center gap-2.5">
