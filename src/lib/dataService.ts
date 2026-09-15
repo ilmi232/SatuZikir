@@ -457,24 +457,26 @@ export const DataService = {
     if (isSupabaseConfigured && supabase) {
       try {
         const isUuid = campaign.id && isValidUUID(campaign.id);
+        const payload = {
+          title: campaign.title,
+          slug: campaign.slug,
+          category: campaign.category || 'syifa',
+          description: campaign.description,
+          arabic_text: campaign.arabic_text,
+          latin_text: campaign.latin_text,
+          translation_text: campaign.translation_text,
+          target_count: campaign.target_count,
+          current_count: campaign.current_count,
+          status: campaign.status,
+          image_url: campaign.image_url,
+          updated_at: new Date().toISOString(),
+        };
+
         if (isUuid) {
           const { data, error } = await supabase
             .from('campaigns')
-            .update({
-              title: campaign.title,
-              slug: campaign.slug,
-              category: campaign.category || 'syifa',
-              description: campaign.description,
-              arabic_text: campaign.arabic_text,
-              latin_text: campaign.latin_text,
-              translation_text: campaign.translation_text,
-              target_count: campaign.target_count,
-              current_count: campaign.current_count,
-              status: campaign.status,
-              image_url: campaign.image_url,
-              updated_at: new Date().toISOString(),
-            })
-            .eq('id', campaign.id!)
+            .update(payload)
+            .eq('id', campaign.id)
             .select()
             .single();
 
@@ -482,22 +484,14 @@ export const DataService = {
             return data as Campaign;
           }
         } else {
+          // Insert new campaign
           const { data, error } = await supabase
             .from('campaigns')
             .insert({
-              title: campaign.title,
-              slug: campaign.slug,
-              category: campaign.category || 'syifa',
-              description: campaign.description,
-              arabic_text: campaign.arabic_text,
-              latin_text: campaign.latin_text,
-              translation_text: campaign.translation_text,
-              target_count: campaign.target_count,
+              ...payload,
               current_count: campaign.current_count || 0,
               status: campaign.status || 'active',
-              image_url: campaign.image_url,
               created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
             })
             .select()
             .single();
