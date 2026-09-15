@@ -6,10 +6,20 @@ function isValidUUID(str: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 }
 
+// Purge legacy mock storage
+if (typeof window !== 'undefined') {
+  try {
+    localStorage.removeItem('satuzikir_campaigns_v2');
+    localStorage.removeItem('satuzikir_prayers_v2');
+  } catch {
+    // ignore
+  }
+}
+
 function getLocalCampaigns(): Campaign[] {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = localStorage.getItem('satuzikir_campaigns_v2');
+    const raw = localStorage.getItem('satuzikir_campaigns_v3');
     if (raw) {
       return JSON.parse(raw);
     }
@@ -22,7 +32,7 @@ function getLocalCampaigns(): Campaign[] {
 function saveLocalCampaigns(campaigns: Campaign[]) {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem('satuzikir_campaigns_v2', JSON.stringify(campaigns));
+    localStorage.setItem('satuzikir_campaigns_v3', JSON.stringify(campaigns));
   } catch {
     // Ignore storage quota
   }
@@ -31,7 +41,7 @@ function saveLocalCampaigns(campaigns: Campaign[]) {
 function getLocalPrayers(): Prayer[] {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = localStorage.getItem('satuzikir_prayers_v2');
+    const raw = localStorage.getItem('satuzikir_prayers_v3');
     if (raw) {
       return JSON.parse(raw);
     }
@@ -44,7 +54,7 @@ function getLocalPrayers(): Prayer[] {
 function saveLocalPrayers(prayers: Prayer[]) {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem('satuzikir_prayers_v2', JSON.stringify(prayers));
+    localStorage.setItem('satuzikir_prayers_v3', JSON.stringify(prayers));
   } catch {
     // Ignore storage quota
   }
