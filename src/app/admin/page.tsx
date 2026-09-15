@@ -383,55 +383,6 @@ export default function AdminHubPage() {
             <span className="text-[9px] text-[#404944]">Butir</span>
           </div>
         </div>
-
-        {/* Visual Monitoring Sparkline Per Jam */}
-        <div className="bg-white p-3 rounded-2xl shadow-sm border border-[#eaedff] mt-1">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[16px] text-[#003527]">
-                monitoring
-              </span>
-              <span className="text-xs text-[#003527] font-bold">Trafik Tap Jamaah / Jam</span>
-            </div>
-            <span className="text-[10px] text-[#404944]">Puncak: 20:00 - 21:00</span>
-          </div>
-
-          <div className="flex items-end justify-between h-16 pt-2 px-1 gap-1.5">
-            {[
-              { time: '16:00', h: '28%', active: false },
-              { time: '17:00', h: '42%', active: false },
-              { time: '18:00', h: '78%', active: false },
-              { time: '19:00', h: '65%', active: false },
-              { time: '20:00', h: '100%', active: true },
-              { time: '21:00', h: '84%', active: false },
-              { time: 'Live', h: '52%', active: false, isLive: true },
-            ].map((bar, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <div
-                  className={`w-full rounded-t transition-all ${
-                    bar.isLive
-                      ? 'bg-[#fe932c] animate-pulse'
-                      : bar.active
-                      ? 'bg-[#003527] relative'
-                      : 'bg-[#e2e7ff]'
-                  }`}
-                  style={{ height: bar.h }}
-                />
-                <span
-                  className={`text-[9px] font-semibold ${
-                    bar.isLive
-                      ? 'text-[#904d00]'
-                      : bar.active
-                      ? 'text-[#003527]'
-                      : 'text-[#404944]'
-                  }`}
-                >
-                  {bar.time}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* 2.5. AI Campaign Generator (Apple iOS Glassmorphism) */}
