@@ -9,7 +9,16 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   icons: {
     icon: '/favicon.ico',
+    apple: '/favicon.ico', // Placeholder if no apple touch icon
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'SatuZikir',
+  },
+  formatDetection: {
+    telephone: false,
+  }
 };
 
 export const viewport: Viewport = {
