@@ -95,11 +95,11 @@ function generateFallbackCampaign(prompt: string): GeneratedCampaign {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const prompt = body.prompt;
-
-    if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
+    const prompt = body.prompt || '';
+    
+    if (!prompt.trim() && !body.image) {
       return NextResponse.json(
-        { error: 'Prompt kampanye tidak boleh kosong.' },
+        { error: 'Prompt atau gambar kampanye tidak boleh kosong.' },
         { status: 400 }
       );
     }
@@ -115,9 +115,23 @@ export async function POST(req: Request) {
         const ai = new GoogleGenAI({ apiKey });
         const systemInstruction = 'Anda adalah asisten majelis zikir Islam SatuZikir. Tugas Anda adalah mengubah prompt admin menjadi detail kampanye zikir lengkap dan sahih dalam format JSON murni tanpa markdown wrapping.\n\nATURAN PENTING:\n1. Teks Arab berharakat, transliterasi Latin, dan terjemahan HARUS LENGKAP tanpa dipotong (terutama untuk shalawat/doa panjang seperti Shalawat Nariyah, Munjiyat, dll).\n2. Format angka Indonesia: tanda titik (.) adalah pemisah ribuan. Contoh "4.444" berarti 4444 (empat ribu empat ratus empat puluh empat). Pastikan target_count berupa angka bulat tanpa titik/koma.\n\nFormat output WAJIB: {"title": string, "target_count": number, "category": "syifa"|"ramadan"|"tolak-bala", "arabic_text": string, "latin_text": string, "translation_text": string, "description": string}';
 
+        const parts: any[] = [{ text: `${systemInstruction}\n\nPrompt Admin: "${prompt}"\n\n[Jika ada gambar, ekstrak teks Arab/Latin dari gambar, lengkapi yang kurang, dan hitung target yang diminta.]\n\nJSON Output:` }];
+
+        if (body.image) {
+          const match = body.image.match(/^data:([^;]+);base64,(.+)$/);
+          if (match) {
+            parts.push({
+              inlineData: {
+                mimeType: match[1],
+                data: match[2]
+              }
+            });
+          }
+        }
+
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
-          contents: `${systemInstruction}\n\nPrompt Admin: "${prompt}"\n\nJSON Output:`
+          contents: parts
         });
 
         const rawText = response.text || '';

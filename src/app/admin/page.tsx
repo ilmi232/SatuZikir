@@ -34,6 +34,7 @@ export default function AdminHubPage() {
 
   // AI Prompt Generator states
   const [aiPrompt, setAiPrompt] = useState('');
+  const [aiImage, setAiImage] = useState<string | null>(null);
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [aiSource, setAiSource] = useState<string | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -43,9 +44,19 @@ export default function AdminHubPage() {
   const [selectedForReset, setSelectedForReset] = useState<Campaign | null>(null);
   const [newCountInput, setNewCountInput] = useState<number>(0);
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAiImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleGenerateWithAi = async (promptToUse?: string) => {
     const textPrompt = promptToUse || aiPrompt;
-    if (!textPrompt.trim()) return;
+    if (!textPrompt.trim() && !aiImage) return;
 
     setIsGeneratingAi(true);
     setAiError(null);
@@ -53,10 +64,12 @@ export default function AdminHubPage() {
     setAiSuccessMsg(null);
 
     try {
+      const payload: any = { prompt: textPrompt.trim() };
+      if (aiImage) payload.image = aiImage;
       const res = await fetch('/api/ai/generate-campaign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: textPrompt.trim() }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -458,9 +471,30 @@ export default function AdminHubPage() {
               rows={2}
               value={aiPrompt}
               onChange={(e) => setAiPrompt(e.target.value)}
-              placeholder="Tuliskan hajat atau nama wirid... (misal: Shalawat Nariyah 4.444x untuk kesembuhan)"
-              className="w-full bg-white/70 dark:bg-white/[0.04] backdrop-blur-md text-[#131b2e] dark:text-[#f0fdf4] placeholder:text-[#404944]/45 dark:placeholder:text-[#9cb8a2]/40 text-xs px-3.5 py-3 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] focus:border-[#003527]/30 dark:focus:border-[#4edea3]/40 focus:bg-white dark:focus:bg-white/[0.08] focus:ring-4 focus:ring-[#003527]/5 dark:focus:ring-[#4edea3]/10 outline-none transition-all duration-200 resize-none"
+              placeholder="Tuliskan hajat, nama wirid, atau upload foto dari buku/kitab..."
+              className="w-full bg-white/70 dark:bg-white/[0.04] backdrop-blur-md text-[#131b2e] dark:text-[#f0fdf4] placeholder:text-[#404944]/45 dark:placeholder:text-[#9cb8a2]/40 text-xs px-3.5 py-3 pb-12 rounded-2xl border border-black/[0.06] dark:border-white/[0.08] shadow-[inset_0_1px_2px_rgba(0,0,0,0.02)] focus:border-[#003527]/30 dark:focus:border-[#4edea3]/40 focus:bg-white dark:focus:bg-white/[0.08] focus:ring-4 focus:ring-[#003527]/5 dark:focus:ring-[#4edea3]/10 outline-none transition-all duration-200 resize-none"
             />
+            
+            <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <label className="flex items-center justify-center w-8 h-8 rounded-xl bg-[#eaedff] dark:bg-white/10 text-[#003527] dark:text-[#4edea3] cursor-pointer hover:bg-[#d0d8ff] dark:hover:bg-white/20 transition-colors">
+                  <span className="material-symbols-outlined text-[16px]">add_photo_alternate</span>
+                  <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                </label>
+                {aiImage && (
+                  <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-[#eaedff] dark:border-white/10">
+                    <img src={aiImage} alt="Preview" className="object-cover w-full h-full" />
+                    <button 
+                      onClick={() => setAiImage(null)}
+                      className="absolute inset-0 bg-black/40 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">close</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+              <span className="text-[10px] text-[#404944]/50 dark:text-[#9cb8a2]/50">Mendukung OCR & Kitab Kuning</span>
+            </div>
           </div>
 
           {/* iOS-Style Pill Capsules for Quick Inspiration */}
