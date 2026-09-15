@@ -1,108 +1,21 @@
 import { Campaign, Prayer } from '@/types';
 import { supabase, isSupabaseConfigured } from './supabase';
 
-const INITIAL_MOCK_CAMPAIGNS: Campaign[] = [
-  {
-    id: 'c1b48b6f-87df-4e2b-9831-294b4cf43e51',
-    title: 'Shalawat Nariyah 4.444x untuk Kesembuhan Saudara Kita',
-    slug: 'shalawat-nariyah-4444',
-    category: 'syifa',
-    description: 'Niat istighasah bersama untuk kesembuhan kerabat dan jamaah yang terbaring di rumah sakit.',
-    arabic_text: 'اللَّهُمَّ صَلِّ صَلاَةً كَامِلَةً وَسَلِّمْ سَلاَمًا تَامًّا عَلَى سَيِّدِنَا مُحَمَّدٍ الَّذِي تَنْحَلُّ بِهِ الْعُقَدُ وَتَنْفَرِجُ بِهِ الْكُرَبُ وَتُقْضَى بِهِ الْحَوَائِجُ وَتُنَالُ بِهِ الرَّغَائِبُ وَحُسْنُ الْخَوَاتِيمِ وَيُسْتَسْقَى الْغَمَامُ بِوَجْهِهِ الْكَرِيمِ وَعَلَى آلِهِ وَصَحْبِهِ فِي كُلِّ لَمْحَةٍ وَنَفَسٍ بِعَدَدِ كُلِّ مَعْلُومٍ لَكَ',
-    latin_text: "Allâhumma shalli shalâtan kâmilatan wa sallim salâman tâmman 'alâ sayyidinâ Muhammadinilladzî tanhallu bihil 'uqadu wa tanfariju bihil kurabu...",
-    translation_text: 'Ya Allah, limpahkanlah shalawat yang sempurna dan keselamatan yang utuh kepada junjungan kami Nabi Muhammad, yang melaluinya terurai segala ikatan dan terangkat segala duka...',
-    target_count: 4444,
-    current_count: 3120,
-    status: 'active',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'a8e99b62-12fd-4a21-88fc-8473b185bc02',
-    title: 'Istighfar 100.000x Tarhib Ramadan',
-    slug: 'istighfar-100000',
-    category: 'ramadan',
-    description: 'Membersihkan jiwa dan menyucikan hati menyambut datangnya bulan penuh ampunan dan rahmat.',
-    arabic_text: 'أَسْتَغْفِرُ اللّٰهَ الْعَظِيمَ وَأَتُوبُ إِلَيْهِ',
-    latin_text: "Astaghfirullâhal 'azhîma wa atûbu ilaih.",
-    translation_text: 'Aku memohon ampunan kepada Allah Yang Maha Agung dan bertaubat kepada-Nya.',
-    target_count: 100000,
-    current_count: 64250,
-    status: 'active',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'f32c918a-442b-4221-a1b9-8bc43d411122',
-    title: "Hasbunallah Wa Ni'mal Wakil 10.000x",
-    slug: 'hasbunallah-10000',
-    category: 'tolak-bala',
-    description: 'Doa perisai umat memohon ketenteraman, perdamaian saudara, dan perlindungan dari marabahaya.',
-    arabic_text: 'حَسْبُنَا اللّٰهُ وَنِعْمَ الْوَكِيلُ نِعْمَ الْمَوْلَىٰ وَنِعْمَ النَّصِيرُ',
-    latin_text: "Hasbunallâhu wa ni'mal wakîl, ni'mal maulâ wa ni'man nashîr.",
-    translation_text: 'Cukuplah Allah menjadi Penolong kami dan Allah adalah sebaik-baik Pelindung.',
-    target_count: 10000,
-    current_count: 8910,
-    status: 'active',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'e49b8172-3321-4112-98ab-102938475612',
-    title: 'Shalawat Tibbil Qulub 10.000x Penyejuk Jiwa',
-    slug: 'tibbil-qulub-10000',
-    category: 'syifa',
-    description: 'Kesehatan keluarga besar jamaah Nusantara dan penenang kegelisahan hati.',
-    arabic_text: 'اللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ طِبِّ الْقُلُوبِ وَدَوَائِهَا وَعَافِيَةِ الأَبْدَانِ وَشِفَائِهَا وَنُورِ الأَبْصَارِ وَضِيَائِهَا وَعَلَى آلِهِ وَصَحْبِهِ وَسَلِّمْ',
-    latin_text: "Allâhumma shalli 'alâ sayyidinâ Muhammadin thibbil qulûbi wa dawâ-ihâ...",
-    translation_text: 'Ya Allah limpahkanlah rahmat kepada junjungan kami Nabi Muhammad, sebagai obat hati dan penawarnya, penyehat badan dan kesembuhannya...',
-    target_count: 10000,
-    current_count: 8432,
-    status: 'active',
-    created_at: new Date().toISOString(),
-  }
-];
-
-const INITIAL_MOCK_PRAYERS: Prayer[] = [
-  {
-    id: 'p1',
-    campaign_id: 'c1b48b6f-87df-4e2b-9831-294b4cf43e51',
-    name: 'Siti Aminah (Surabaya)',
-    prayer_text: 'Mohon kesembuhan berkah operasi Ibu di RS Sardjito, semoga diangkat penyakitnya. Aamiin.',
-    amin_count: 142,
-    created_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-  },
-  {
-    id: 'p2',
-    campaign_id: 'c1b48b6f-87df-4e2b-9831-294b4cf43e51',
-    name: 'Fulan bin Fulan (Bandung)',
-    prayer_text: 'Semoga ikhtiar anak kami dipermudah dan dijadikan anak yang sholeh pecinta majelis zikir.',
-    amin_count: 89,
-    created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-  },
-  {
-    id: 'p3',
-    campaign_id: 'c1b48b6f-87df-4e2b-9831-294b4cf43e51',
-    name: 'Hamba Allah (Yogyakarta)',
-    prayer_text: 'Bismillah dilancarkan rezeki yang halal berkah dan dijauhkan dari marabahaya.',
-    amin_count: 104,
-    created_at: new Date(Date.now() - 1000 * 60 * 110).toISOString(),
-  }
-];
-
 // Helper to check valid UUID
 function isValidUUID(str: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 }
 
 function getLocalCampaigns(): Campaign[] {
-  if (typeof window === 'undefined') return INITIAL_MOCK_CAMPAIGNS;
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem('satuzikir_campaigns_v2');
     if (raw) {
       return JSON.parse(raw);
     }
-    localStorage.setItem('satuzikir_campaigns_v2', JSON.stringify(INITIAL_MOCK_CAMPAIGNS));
-    return INITIAL_MOCK_CAMPAIGNS;
+    return [];
   } catch {
-    return INITIAL_MOCK_CAMPAIGNS;
+    return [];
   }
 }
 
@@ -116,16 +29,15 @@ function saveLocalCampaigns(campaigns: Campaign[]) {
 }
 
 function getLocalPrayers(): Prayer[] {
-  if (typeof window === 'undefined') return INITIAL_MOCK_PRAYERS;
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem('satuzikir_prayers_v2');
     if (raw) {
       return JSON.parse(raw);
     }
-    localStorage.setItem('satuzikir_prayers_v2', JSON.stringify(INITIAL_MOCK_PRAYERS));
-    return INITIAL_MOCK_PRAYERS;
+    return [];
   } catch {
-    return INITIAL_MOCK_PRAYERS;
+    return [];
   }
 }
 
@@ -160,21 +72,8 @@ export const DataService = {
           .order('created_at', { ascending: false });
 
         if (!error && data) {
-          if (data.length === 0) {
-            // Table exists but is empty -> Auto seed initial campaigns
-            await DataService.seedDatabase();
-            const recheck = await supabase
-              .from('campaigns')
-              .select('*')
-              .order('created_at', { ascending: false });
-            if (recheck.data && recheck.data.length > 0) {
-              saveLocalCampaigns(recheck.data as Campaign[]);
-              return recheck.data as Campaign[];
-            }
-          } else {
-            saveLocalCampaigns(data as Campaign[]);
-            return data as Campaign[];
-          }
+          saveLocalCampaigns(data as Campaign[]);
+          return data as Campaign[];
         }
       } catch (err) {
         console.warn('Supabase getCampaigns failed, falling back to local storage', err);
@@ -649,65 +548,7 @@ export const DataService = {
     return true;
   },
 
-  /**
-   * Seed default initial campaigns and prayers into Supabase
-   */
-  async seedDatabase(): Promise<{ success: boolean; count: number; error?: string }> {
-    if (!isSupabaseConfigured || !supabase) {
-      return { success: false, count: 0, error: 'Supabase belum diatur' };
-    }
 
-    try {
-      let insertedCount = 0;
-      for (const camp of INITIAL_MOCK_CAMPAIGNS) {
-        const { error } = await supabase.from('campaigns').upsert(
-          {
-            title: camp.title,
-            slug: camp.slug,
-            category: camp.category || 'syifa',
-            description: camp.description,
-            arabic_text: camp.arabic_text,
-            latin_text: camp.latin_text,
-            translation_text: camp.translation_text,
-            target_count: camp.target_count,
-            current_count: camp.current_count,
-            status: camp.status,
-            created_at: camp.created_at,
-          },
-          { onConflict: 'slug' }
-        );
-        if (!error) insertedCount++;
-      }
-
-      // Seed sample prayers
-      const { data: nariyah } = await supabase
-        .from('campaigns')
-        .select('id')
-        .eq('slug', 'shalawat-nariyah-4444')
-        .maybeSingle();
-
-      if (nariyah?.id) {
-        await supabase.from('prayers').insert([
-          {
-            campaign_id: nariyah.id,
-            name: 'Siti Aminah (Surabaya)',
-            prayer_text: 'Mohon kesembuhan berkah operasi Ibu di RS Sardjito, semoga diangkat penyakitnya. Aamiin.',
-            amin_count: 142,
-          },
-          {
-            campaign_id: null,
-            name: 'Hamba Allah (Yogyakarta)',
-            prayer_text: 'Bismillah dilancarkan rezeki yang halal berkah dan dijauhkan dari marabahaya.',
-            amin_count: 104,
-          },
-        ]);
-      }
-
-      return { success: true, count: insertedCount };
-    } catch (err) {
-      return { success: false, count: 0, error: (err as Error).message };
-    }
-  },
 
   /**
    * Migrate and upload all current local storage campaigns to Supabase

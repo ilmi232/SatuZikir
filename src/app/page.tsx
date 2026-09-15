@@ -8,23 +8,14 @@ import CampaignCard from '@/components/CampaignCard';
 export default function HomePage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('semua');
-  const [liveTotal, setLiveTotal] = useState<number>(148920);
-  const [activeJamaah, setActiveJamaah] = useState<number>(1420);
+  const [liveTotal, setLiveTotal] = useState<number>(0);
 
   useEffect(() => {
     DataService.getCampaigns().then((data) => {
       setCampaigns(data);
       const sum = data.reduce((acc, c) => acc + Number(c.current_count), 0);
-      if (sum > 0) setLiveTotal(sum);
+      setLiveTotal(sum);
     });
-
-    // Real-time micro-pulse counter increment simulation
-    const interval = setInterval(() => {
-      setLiveTotal((prev) => prev + Math.floor(Math.random() * 3) + 1);
-      setActiveJamaah((prev) => Math.max(1200, prev + Math.floor(Math.random() * 5) - 2));
-    }, 4000);
-
-    return () => clearInterval(interval);
   }, []);
 
   const filteredCampaigns = campaigns.filter((c) => {
@@ -62,27 +53,16 @@ export default function HomePage() {
           </div>
 
           {/* Live Counters Micro-Grid */}
-          <div className="grid grid-cols-2 gap-2 mt-1 pt-1">
+          <div className="flex flex-col mt-1 pt-1">
             <div className="flex flex-col bg-[#003527]/60 rounded-xl p-2.5 backdrop-blur-sm border border-[#064e3b]/50">
               <div className="flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#31c98f] animate-ping" />
-                <span className="text-[10px] text-[#95d3ba]">Terhimpun Hari Ini</span>
+                <span className="text-[10px] text-[#95d3ba]">Total Zikir Jamaah</span>
               </div>
               <span className="font-headline text-xl text-white font-bold mt-0.5 font-mono">
                 {liveTotal.toLocaleString('id-ID')}
               </span>
-              <span className="text-[10px] text-[#95d3ba]/80">butir zikir terbaca</span>
-            </div>
-
-            <div className="flex flex-col bg-[#003527]/60 rounded-xl p-2.5 backdrop-blur-sm border border-[#064e3b]/50">
-              <div className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#ffdcc3] animate-pulse" />
-                <span className="text-[10px] text-[#95d3ba]">Jamaah Aktif</span>
-              </div>
-              <span className="font-headline text-xl text-[#ffdcc3] font-bold mt-0.5 font-mono">
-                {activeJamaah.toLocaleString('id-ID')}
-              </span>
-              <span className="text-[10px] text-[#95d3ba]/80">sedang berzikir</span>
+              <span className="text-[10px] text-[#95d3ba]/80">butir zikir terbaca untuk semua majelis</span>
             </div>
           </div>
         </div>
