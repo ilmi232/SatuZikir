@@ -53,7 +53,7 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
 
         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#eaedff] text-[#003527] text-[11px] font-medium">
           <span className="w-1.5 h-1.5 rounded-full bg-[#31c98f] animate-pulse" />
-          <span>Live: {Math.floor((campaign.current_count % 300) + 40)} jamaah</span>
+          <span>Majelis Live</span>
         </div>
       </div>
 

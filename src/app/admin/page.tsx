@@ -369,18 +369,18 @@ export default function AdminHubPage() {
             <span className="font-headline text-lg text-[#904d00] font-bold mt-0.5 font-mono">
               {totalZikir.toLocaleString()}
             </span>
-            <span className="text-[9px] text-[#904d00] font-semibold">+148/mnt</span>
+            <span className="text-[9px] text-[#904d00] font-semibold">Real-Time</span>
           </div>
 
           <div className="flex flex-col bg-white p-2.5 rounded-2xl shadow-sm border border-[#eaedff] text-center">
             <span className="material-symbols-outlined text-[18px] text-[#003623] mx-auto mb-1">
-              group
+              tour
             </span>
-            <span className="text-[10px] text-[#404944]">Jamaah</span>
+            <span className="text-[10px] text-[#404944]">Total Target</span>
             <span className="font-headline text-lg text-[#131b2e] font-bold mt-0.5 font-mono">
-              1.820
+              {campaigns.reduce((acc, c) => acc + (c.target_count || 0), 0).toLocaleString()}
             </span>
-            <span className="text-[9px] text-[#404944]">Hari ini</span>
+            <span className="text-[9px] text-[#404944]">Butir</span>
           </div>
         </div>
 

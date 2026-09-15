@@ -19,49 +19,47 @@ export default function AdminLoginPage() {
       sessionStorage.setItem('satuzikir_admin_auth', 'true');
       router.push('/admin');
     } else {
-      setError('PIN Admin salah. Default PIN demo adalah 123456.');
+      setError('PIN Admin salah. Silakan coba lagi.');
     }
   };
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-6 min-h-[60vh]">
-      <div className="w-full bg-white rounded-3xl p-6 shadow-sm border border-[#eaedff] text-center space-y-4">
-        <div className="w-16 h-16 mx-auto flex items-center justify-center">
-          <SatuZikirLogo className="w-16 h-16" />
-        </div>
-
-        <div>
+      <div className="w-full max-w-sm bg-white rounded-3xl p-8 shadow-sm border border-[#eaedff]">
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-16 h-16 rounded-full bg-[#003527] flex items-center justify-center mb-4">
+            <span className="text-[#31c98f] font-arabic text-2xl font-bold">ز</span>
+          </div>
           <h1 className="font-headline text-2xl text-[#003527] font-bold">Admin SatuZikir</h1>
-          <p className="text-xs text-[#404944] mt-1">
+          <p className="text-xs text-[#404944] mt-1 text-center">
             Pusat kendali amalan zikir bersama jamaah
           </p>
         </div>
 
         {error && (
-          <div className="p-3 rounded-xl bg-[#ffdad6] text-[#93000a] text-xs font-semibold">
+          <div className="bg-[#ffe4e4] text-[#a00000] text-xs font-semibold p-3 rounded-xl mb-6 text-center animate-in fade-in duration-200">
             {error}
           </div>
         )}
 
-        <form onSubmit={handlePinLogin} className="space-y-4 pt-2">
-          <div className="flex flex-col gap-1.5 text-left">
+        <form onSubmit={handlePinLogin} className="flex flex-col gap-5">
+          <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-[#131b2e]">PIN Akses Admin</label>
-            <input
-              type="password"
-              required
-              value={pin}
-              onChange={(e) => setPin(e.target.value)}
-              placeholder="Masukkan PIN Admin (Demo: 123456)"
-              className="w-full px-4 py-3 rounded-xl bg-[#f2f3ff] text-[#131b2e] text-center tracking-widest font-mono text-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#003527]"
-            />
-            <span className="text-[11px] text-[#404944] text-center mt-1">
-              PIN default: <code className="text-[#904d00] font-bold">123456</code>
-            </span>
+            <div className="flex flex-col gap-1">
+              <input
+                type="password"
+                required
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                placeholder="Masukkan PIN Admin"
+                className="w-full px-4 py-3 rounded-xl bg-[#f2f3ff] text-[#131b2e] text-center tracking-widest font-mono text-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#003527]"
+              />
+            </div>
           </div>
 
           <button
             type="submit"
-            className="w-full h-12 rounded-xl bg-[#003527] hover:bg-[#064e3b] text-white text-xs font-bold shadow-md transition-all active:scale-[0.98] cursor-pointer"
+            className="w-full py-3.5 bg-[#003527] hover:bg-[#064e3b] text-white font-bold text-sm rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
           >
             Masuk Hub Admin
           </button>
