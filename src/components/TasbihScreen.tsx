@@ -272,7 +272,7 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[#31c98f]" />
             </span>
             <span className="text-[11px] text-[#131b2e] font-bold">
-              Live: {Math.floor((campaign.current_count % 350) + 60)} Jamaah
+              Majelis Live
             </span>
           </div>
         </div>
