@@ -17,7 +17,7 @@ interface TasbihScreenProps {
 
 export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreenProps) {
   const [campaign, setCampaign] = useState<Campaign>(initialCampaign);
-  const [personalCount, setPersonalCount] = useState<number>(33);
+  const [personalCount, setPersonalCount] = useState<number>(0);
   const [batchStep, setBatchStep] = useState<number>(0);
   const [isHapticOn, setIsHapticOn] = useState<boolean>(true);
   const [isAudioOn, setIsAudioOn] = useState<boolean>(true);
@@ -31,7 +31,7 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
   const [prayers, setPrayers] = useState<Prayer[]>([]);
   const [currentPrayerIdx, setCurrentPrayerIdx] = useState<number>(0);
   const [isTapping, setIsTapping] = useState<boolean>(false);
-  const [aamiinCount, setAamiinCount] = useState<number>(842);
+  const [aamiinCount, setAamiinCount] = useState<number>(0);
   const [hasAamiined, setHasAamiined] = useState<boolean>(false);
 
   const isCompleted = campaign.status === 'completed' || campaign.current_count >= campaign.target_count;
