@@ -26,9 +26,9 @@ function generateFallbackCampaign(prompt: string): GeneratedCampaign {
       title: `Shalawat Nariyah ${parsedTarget.toLocaleString('id-ID')}x untuk Kelapangan Hajat & Kesembuhan`,
       target_count: parsedTarget || 4444,
       category: 'syifa',
-      arabic_text: 'اللَّهُمَّ صَلِّ صَلاَةً كَامِلَةً وَسَلِّمْ سَلاَمًا تَامًّا عَلَى سَيِّدِنَا مُحَمَّدٍ الَّذِي تَنْحَلُّ بِهِ الْعُقَدُ وَتَنْفَرِجُ بِهِ الْكُرَبُ وَتُقْضَى بِهِ الْحَوَائِجُ',
-      latin_text: 'Allahumma shalli shalatan kamilatan wa sallim salaman tamman ‘ala sayyidina Muhammadinilladzi tanhallu bihil ‘uqadu wa tanfariju bihil kurabu wa tuqdha bihil hawa-iju',
-      translation_text: 'Ya Allah, limpahkanlah shalawat yang sempurna dan keselamatan yang utuh kepada junjungan kami Nabi Muhammad, yang dengannya terurai segala ikatan kesusahan dan terpenuhi segala hajat.',
+      arabic_text: 'اللَّهُمَّ صَلِّ صَلاَةً كَامِلَةً وَسَلِّمْ سَلاَمًا تَامًّا عَلَى سَيِّدِنَا مُحَمَّدٍ الَّذِي تَنْحَلُّ بِهِ الْعُقَدُ وَتَنْفَرِجُ بِهِ الْكُرَبُ وَتُقْضَى بِهِ الْحَوَائِجُ وَتُنَالُ بِهِ الرَّغَائِبُ وَحُسْنُ الْخَوَاتِيمِ وَيُسْتَسْقَى الْغَمَامُ بِوَجْهِهِ الْكَرِيمِ وَعَلَى آلِهِ وَصَحْبِهِ فِي كُلِّ لَمْحَةٍ وَنَفَسٍ بِعَدَدِ كُلِّ مَعْلُومٍ لَكَ',
+      latin_text: 'Allahumma shalli shalatan kamilatan wa sallim salaman tamman \'ala sayyidina Muhammadinilladzi tanhallu bihil \'uqadu wa tanfariju bihil kurabu wa tuqdha bihil hawa-iju wa tunalu bihir ragha-ibu wa husnul khawatimi wa yustasqal ghamamu biwajhihil karim wa \'ala aalihi wa shahbihi fi kulli lamhatin wa nafasin bi\'adadi kulli ma\'lumin lak.',
+      translation_text: 'Ya Allah, limpahkanlah shalawat yang sempurna dan keselamatan yang utuh kepada junjungan kami Nabi Muhammad, yang melaluinya terurai segala ikatan, terangkat segala duka, terpenuhi segala hajat, tercapai segala keinginan dan husnul khatimah, serta diturunkannya hujan dari awan berkat wajahnya yang mulia. Dan limpahkan juga kepada keluarga dan sahabatnya, di setiap kedipan mata dan hembusan nafas, sebanyak pengetahuan yang Engkau miliki.',
       description: 'Menghimpun ribuan butir Shalawat Nariyah bersama jamaah se-Nusantara. Niatkan semata memohon ridha Allah SWT, kelapangan urusan, dan kesembuhan bagi saudara-saudara kita yang sedang diuji sakit.'
     };
   }
@@ -113,7 +113,7 @@ export async function POST(req: Request) {
     if (apiKey) {
       try {
         const ai = new GoogleGenAI({ apiKey });
-        const systemInstruction = 'Anda adalah asisten majelis zikir Islam SatuZikir. Tugas Anda adalah mengubah prompt admin menjadi detail kampanye zikir lengkap dan sahih dalam format JSON murni tanpa markdown wrapping. Format: {"title": string, "target_count": number, "category": "syifa"|"ramadan"|"tolak-bala", "arabic_text": string, "latin_text": string, "translation_text": string, "description": string}';
+        const systemInstruction = 'Anda adalah asisten majelis zikir Islam SatuZikir. Tugas Anda adalah mengubah prompt admin menjadi detail kampanye zikir lengkap dan sahih dalam format JSON murni tanpa markdown wrapping.\n\nATURAN PENTING:\n1. Teks Arab berharakat, transliterasi Latin, dan terjemahan HARUS LENGKAP tanpa dipotong (terutama untuk shalawat/doa panjang seperti Shalawat Nariyah, Munjiyat, dll).\n2. Format angka Indonesia: tanda titik (.) adalah pemisah ribuan. Contoh "4.444" berarti 4444 (empat ribu empat ratus empat puluh empat). Pastikan target_count berupa angka bulat tanpa titik/koma.\n\nFormat output WAJIB: {"title": string, "target_count": number, "category": "syifa"|"ramadan"|"tolak-bala", "arabic_text": string, "latin_text": string, "translation_text": string, "description": string}';
 
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
