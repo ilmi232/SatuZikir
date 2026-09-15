@@ -431,11 +431,22 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
           </div>
 
           {/* Optimistic batch syncing indicator */}
-          <div className="flex items-center gap-1.5 text-[#404944] mt-0.5">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#904d00] animate-pulse" />
-            <span className="text-[10px] text-[#404944]">
-              Sinkron ke cloud tiap 5 klik ({batchStep}/5)
-            </span>
+          <div className="flex items-center gap-1.5 mt-0.5 h-4">
+            {batchStep > 0 ? (
+              <>
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#fe932c] animate-pulse" />
+                <span className="text-[10px] text-[#404944] font-medium">
+                  Menyinkronkan... ({batchStep}/5)
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-[12px] text-[#31c98f]">check_circle</span>
+                <span className="text-[10px] text-[#31c98f] font-medium">
+                  Tersimpan di cloud
+                </span>
+              </>
+            )}
           </div>
         </div>
 
