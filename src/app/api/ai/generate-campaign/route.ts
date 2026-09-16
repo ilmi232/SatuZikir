@@ -93,6 +93,42 @@ function generateFallbackCampaign(prompt: string): GeneratedCampaign {
     };
   }
 
+  if (p.includes('jibril') || p.includes('rezeki')) {
+    return {
+      title: `Shalawat Jibril ${parsedTarget.toLocaleString('id-ID')}x Penarik Pintu Rezeki`,
+      target_count: parsedTarget || 10000,
+      category: 'syifa',
+      arabic_text: 'صَلَّى ٱللَّهُ عَلَىٰ مُحَمَّدٍ',
+      latin_text: 'Shallallahu \'ala Muhammad',
+      translation_text: 'Semoga Allah melimpahkan shalawat atas Nabi Muhammad.',
+      description: 'Shalawat Jibril dikenal luas sebagai amalan mustajab pelancar rezeki dari arah yang tak disangka-sangka. Sangat ringan di lisan, namun sangat berat timbangannya.'
+    };
+  }
+
+  if (p.includes('yunus') || p.includes('sedih') || p.includes('dzun nun')) {
+    return {
+      title: `Doa Nabi Yunus ${parsedTarget.toLocaleString('id-ID')}x Pelepas Kesedihan & Musibah`,
+      target_count: parsedTarget || 1000,
+      category: 'tolak-bala',
+      arabic_text: 'لَّا إِلَٰهَ إِلَّا أَنتَ سُبْحَانَكَ إِنِّي كُنتُ مِنَ الظَّالِمِينَ',
+      latin_text: 'Laa ilaaha illaa anta subhaanaka innii kuntu minazh zhaalimiin',
+      translation_text: 'Tidak ada Tuhan selain Engkau. Maha Suci Engkau, sesungguhnya aku adalah termasuk orang-orang yang zalim.',
+      description: 'Doa agung Nabi Yunus AS saat berada di dalam perut ikan paus. Sangat dahsyat untuk melepaskan diri dari kesedihan mendalam, hutang, dan kesulitan yang mengimpit.'
+    };
+  }
+
+  if (p.includes('lathif') || p.includes('latif')) {
+    return {
+      title: `Ya Lathif ${parsedTarget.toLocaleString('id-ID')}x Pelembut Hati & Takdir`,
+      target_count: parsedTarget || 129,
+      category: 'syifa',
+      arabic_text: 'يَا لَطِيفُ',
+      latin_text: 'Yaa Lathiif',
+      translation_text: 'Wahai Yang Maha Lembut.',
+      description: 'Asmaul Husna Al-Lathiif. Diamalkan bersama untuk melembutkan hati yang keras, melancarkan urusan yang rumit, dan memohon agar takdir Allah datang dengan kelembutan.'
+    };
+  }
+
   if (p.includes('nariyah') || p.includes('nariyyah')) {
     return {
       title: `Shalawat Nariyah ${parsedTarget.toLocaleString('id-ID')}x untuk Kelapangan Hajat & Kesembuhan`,
