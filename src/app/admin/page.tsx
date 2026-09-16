@@ -243,10 +243,6 @@ export default function AdminHubPage() {
           </div>
 
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#dae2fd] text-[#131b2e] text-[11px] font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#31c98f] animate-pulse" />
-              v2.4 Live
-            </span>
             <button
               onClick={handleLogout}
               title="Keluar Admin"
