@@ -21,6 +21,18 @@ function generateFallbackCampaign(prompt: string): GeneratedCampaign {
     if (!isNaN(n) && n > 0) parsedTarget = n;
   }
 
+  if (p.includes('ikhlas') || p.includes('ikhlash') || p.includes('ahad')) {
+    return {
+      title: `Surah Al-Ikhlas ${parsedTarget.toLocaleString('id-ID')}x Peneguh Tauhid & Pintu Rezeki`,
+      target_count: parsedTarget || 1000,
+      category: 'syifa',
+      arabic_text: 'قُلْ هُوَ ٱللَّهُ أَحَدٌ. ٱللَّهُ ٱلصَّمَدُ. لَمْ يَلِدْ وَلَمْ يُولَدْ. وَلَمْ يَكُن لَّهُۥ كُفُوًا أَحَدٌۢ',
+      latin_text: 'Qul huwallahu ahad. Allahus samad. Lam yalid walam yuulad. Walam yakul lahu kufuwan ahad.',
+      translation_text: 'Katakanlah: Dialah Allah, Yang Maha Esa. Allah adalah Tuhan yang bergantung kepada-Nya segala sesuatu. Dia tiada beranak dan tiada pula diperanakkan. Dan tidak ada seorangpun yang setara dengan Dia.',
+      description: 'Membaca Surah Al-Ikhlas sebanding dengan sepertiga Al-Qur\'an. Mari khatamkan bersama ribuan jamaah untuk memohon ampunan, melapangkan rezeki, dan meneguhkan tauhid.'
+    };
+  }
+
   if (p.includes('nariyah') || p.includes('nariyyah')) {
     return {
       title: `Shalawat Nariyah ${parsedTarget.toLocaleString('id-ID')}x untuk Kelapangan Hajat & Kesembuhan`,
