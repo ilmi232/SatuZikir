@@ -39,7 +39,7 @@ export default function HomePage() {
               <span className="material-symbols-outlined text-[16px]">groups</span>
             </span>
             <span className="text-xs font-bold text-[#b0f0d6] uppercase tracking-wider">
-              Kekuatan Jamaah Nusantara
+              Harmoni Zikir Umat
             </span>
           </div>
   
