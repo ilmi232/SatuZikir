@@ -28,22 +28,9 @@ export default function MobileHeader() {
         {/* Brand with Emblem Logo */}
         <Link href="/" className="flex items-center gap-2.5">
           <SatuZikirLogo className="h-8 w-8 object-contain" />
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5">
-              <span className={`font-headline text-xl font-bold tracking-tight ${theme === 'dark' ? 'text-[#4edea3]' : 'text-[#003527]'}`}>
-                SatuZikir
-              </span>
-              <span className="bg-[#ffdcc3] text-[#2f1500] text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                Live Jamaah
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#31c98f] animate-pulse" />
-              <span className={`text-[11px] font-medium ${theme === 'dark' ? 'text-[#a5c7ab]' : 'text-[#404944]'}`}>
-                Real-Time Sync Terhubung
-              </span>
-            </div>
-          </div>
+          <span className={`font-headline text-xl font-bold tracking-tight ${theme === 'dark' ? 'text-[#4edea3]' : 'text-[#003527]'}`}>
+            SatuZikir
+          </span>
         </Link>
 
         {/* Top Right Quick Actions */}
