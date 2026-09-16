@@ -33,6 +33,66 @@ function generateFallbackCampaign(prompt: string): GeneratedCampaign {
     };
   }
 
+  if (p.includes('kursi') || p.includes('ayat kursi')) {
+    return {
+      title: `Ayat Kursi ${parsedTarget.toLocaleString('id-ID')}x Benteng Gaib & Perlindungan`,
+      target_count: parsedTarget || 313,
+      category: 'tolak-bala',
+      arabic_text: 'ٱللَّهُ لَآ إِلَـٰهَ إِلَّا هُوَ ٱلْحَىُّ ٱلْقَيُّومُ ۚ لَا تَأْخُذُهُۥ سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُۥ مَا فِى ٱلسَّمَـٰوَٰتِ وَمَا فِى ٱلْأَرْضِ ۗ مَن ذَا ٱلَّذِى يَشْفَعُ عِندَهُۥٓ إِلَّا بِإِذْنِهِۦ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَىْءٍ مِّنْ عِلْمِهِۦٓ إِلَّا بِمَا شَآءَ ۚ وَسِعَ كُرْسِيُّهُ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضَ ۖ وَلَا يَـُٔودُهُۥ حِفْظُهُمَا ۚ وَهُوَ ٱلْعَلِىُّ ٱلْعَظِيمُ',
+      latin_text: 'Allahu laa ilaaha illaa huwal hayyul qayyuum, laa ta\'khudzuhuu sinatuw walaa nauum...',
+      translation_text: 'Allah, tidak ada Tuhan (yang berhak disembah) melainkan Dia Yang Hidup kekal lagi terus menerus mengurus (makhluk-Nya)...',
+      description: 'Pemimpin segala ayat Al-Qur\'an. Dibaca berjamaah sebagai perisai dari segala kejahatan, penolak bala, dan pelindung keluarga serta harta benda dari gangguan jin dan syaitan.'
+    };
+  }
+
+  if (p.includes('munjiyat') || p.includes('selamat')) {
+    return {
+      title: `Shalawat Munjiyat ${parsedTarget.toLocaleString('id-ID')}x Penyelamat Kesulitan`,
+      target_count: parsedTarget || 1000,
+      category: 'syifa',
+      arabic_text: 'اَللّٰهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ صَلاَةً تُنْجِيْنَا بِهَا مِنْ جَمِيْعِ الْأَهْوَالِ وَالْاٰفَاتِ، وَتَقْضِيْ لَنَا بِهَا جَمِيْعَ الْحَاجَاتِ...',
+      latin_text: 'Allahumma shalli \'ala sayyidina Muhammadin shalatan tunjina biha min jami\'il ahwali wal afat...',
+      translation_text: 'Ya Allah, limpahkanlah rahmat kepada junjungan kami Nabi Muhammad, yang dengan shalawat itu Engkau menyelamatkan kami dari semua keadaan yang menakutkan dan dari semua cobaan...',
+      description: 'Shalawat penyelamat yang diturunkan melalui mimpi orang shaleh saat badai lautan. Sangat mustajab dibaca berulang untuk menyelamatkan dari krisis, hutang, dan musibah besar.'
+    };
+  }
+
+  if (p.includes('tahlil') || p.includes('lailahaillallah') || p.includes('laa ilaaha illallah')) {
+    return {
+      title: `Tahlil Akbar ${parsedTarget.toLocaleString('id-ID')}x Kunci Pintu Surga`,
+      target_count: parsedTarget || 70000,
+      category: 'ramadan',
+      arabic_text: 'لَا إِلَٰهَ إِلَّا ٱللَّهُ',
+      latin_text: 'Laa ilaaha illallah',
+      translation_text: 'Tiada Tuhan yang berhak disembah selain Allah.',
+      description: 'Seutama-utama zikir adalah Laa ilaaha illallah. Mari bersama menghimpun kalimat tauhid 70.000x sebagai pembebas diri dan keluarga dari api neraka (fida\').'
+    };
+  }
+
+  if (p.includes('sayyidul') || p.includes('sayidul')) {
+    return {
+      title: `Sayyidul Istighfar ${parsedTarget.toLocaleString('id-ID')}x Penghapus Segala Dosa`,
+      target_count: parsedTarget || 100,
+      category: 'ramadan',
+      arabic_text: 'اَللَّهُمَّ أَنْتَ رَبِّيْ لَا إِلَـٰهَ إِلَّا أَنْتَ، خَلَقْتَنِيْ وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ...',
+      latin_text: 'Allahumma anta rabbii laa ilaaha illaa anta, khalaqtanii wa anaa \'abduka...',
+      translation_text: 'Ya Allah, Engkau adalah Tuhanku, tidak ada Tuhan yang berhak disembah selain Engkau. Engkau telah menciptakanku dan aku adalah hamba-Mu...',
+      description: 'Penghulu segala istighfar. Barangsiapa membacanya dengan yakin di siang hari lalu wafat, ia penghuni surga. Mari amalkan bersama.'
+    };
+  }
+
+  if (p.includes('fatih') || p.includes('pembuka')) {
+    return {
+      title: `Shalawat Fatih ${parsedTarget.toLocaleString('id-ID')}x Pembuka Pintu Kebaikan`,
+      target_count: parsedTarget || 1000,
+      category: 'syifa',
+      arabic_text: 'اللَّهُمَّ صَلِّ عَلى سَيِّدِنَا مُحَمَّدٍ الفاتِحِ لِمَا أُغْلِقَ و الخَاتِمِ لِمَا سَبَقَ نَاصِرِ الحَقِّ بَالحَقَّ و الهَادِي إلى صِرَاطِكَ المُسْتَقِيمِ...',
+      latin_text: 'Allahumma shalli \'ala sayyidina Muhammadinil faatihi limaa ughliqa wal khaatimi limaa sabaqa...',
+      translation_text: 'Ya Allah, limpahkanlah rahmat kepada junjungan kami Nabi Muhammad, pembuka apa yang terkunci, penutup kenabian sebelumnya, penolong kebenaran dengan kebenaran...',
+      description: 'Shalawat yang sangat dahsyat untuk membuka jalan buntu, melancarkan rezeki yang seret, dan menembus kesulitan hidup.'
+    };
+  }
+
   if (p.includes('nariyah') || p.includes('nariyyah')) {
     return {
       title: `Shalawat Nariyah ${parsedTarget.toLocaleString('id-ID')}x untuk Kelapangan Hajat & Kesembuhan`,
