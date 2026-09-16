@@ -27,9 +27,7 @@ export default function AdminLoginPage() {
     <div className="flex-1 flex flex-col items-center justify-center p-6 min-h-[60vh]">
       <div className="w-full max-w-sm bg-white rounded-3xl p-8 shadow-sm border border-[#eaedff]">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 rounded-full bg-[#003527] flex items-center justify-center mb-4">
-            <span className="text-[#31c98f] font-arabic text-2xl font-bold">ز</span>
-          </div>
+          <SatuZikirLogo className="w-16 h-16 mb-4" />
           <h1 className="font-headline text-2xl text-[#003527] font-bold">Admin SatuZikir</h1>
           <p className="text-xs text-[#404944] mt-1 text-center">
             Pusat kendali amalan zikir bersama jamaah
