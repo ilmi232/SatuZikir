@@ -6,7 +6,7 @@ export default function SatuZikirLogo({ className = 'h-8 w-8' }: { className?: s
       <img
         src="/logo-app.jpg"
         alt="SatuZikir Logo"
-        className="absolute w-[122%] h-[122%] max-w-none object-cover"
+        className="absolute w-[135%] h-[135%] max-w-none object-cover"
       />
     </div>
   );
