@@ -8,38 +8,58 @@ export default function SatuZikirLogo({ className = 'h-8 w-auto' }: { className?
       aria-label="SatuZikir Emblem Logo"
     >
       <defs>
-        <linearGradient id="emeraldGlass" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#059669" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#022c22" stopOpacity="0.95" />
+        <linearGradient id="emeraldBase" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#059669" />
+          <stop offset="100%" stopColor="#022c22" />
         </linearGradient>
-        <linearGradient id="goldGlow" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#D97706" />
-          <stop offset="50%" stopColor="#FBBF24" />
-          <stop offset="100%" stopColor="#FEF3C7" />
+        <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FEF3C7" />
+          <stop offset="30%" stopColor="#FBBF24" />
+          <stop offset="70%" stopColor="#D97706" />
+          <stop offset="100%" stopColor="#92400E" />
         </linearGradient>
-        <filter id="glassBlur" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#000" floodOpacity="0.3" />
+        <radialGradient id="beadGlow" cx="40%" cy="30%" r="60%">
+          <stop offset="0%" stopColor="#6EE7B7" />
+          <stop offset="50%" stopColor="#059669" />
+          <stop offset="100%" stopColor="#064E3B" />
+        </radialGradient>
+        <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+          <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.5" />
         </filter>
       </defs>
 
-      {/* Background Glass Circle */}
-      <circle cx="50" cy="50" r="48" fill="url(#emeraldGlass)" filter="url(#glassBlur)" />
-      
-      {/* Outer Glow Ring */}
-      <circle cx="50" cy="50" r="42" fill="none" stroke="url(#goldGlow)" strokeWidth="1" strokeOpacity="0.5" />
+      {/* Glossy App Icon Base */}
+      <rect x="2" y="2" width="96" height="96" rx="22" fill="url(#emeraldBase)" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+      <path d="M 2 30 Q 50 45 98 30 L 98 24 Q 98 2 76 2 L 24 2 Q 2 2 2 24 Z" fill="rgba(255,255,255,0.08)" />
 
-      {/* Rub el Hizb (8-pointed star) with Gold Gradient */}
-      <g stroke="url(#goldGlow)" strokeWidth="2.5" fill="none" filter="url(#glassBlur)">
-        <rect x="25" y="25" width="50" height="50" rx="4" />
-        <rect x="25" y="25" width="50" height="50" rx="4" transform="rotate(45 50 50)" />
+      {/* 8-pointed gold star outline (Rub el Hizb) */}
+      <g stroke="url(#goldGradient)" strokeWidth="2.5" fill="none" filter="url(#shadow)">
+        <rect x="25" y="25" width="50" height="50" rx="2" />
+        <rect x="25" y="25" width="50" height="50" rx="2" transform="rotate(45 50 50)" />
       </g>
 
-      {/* Inner Emerald Jewel */}
-      <circle cx="50" cy="50" r="16" fill="#047857" stroke="url(#goldGlow)" strokeWidth="1.5" />
-      <circle cx="50" cy="50" r="10" fill="#34D399" opacity="0.4" />
+      {/* Crescent Moon */}
+      <path d="M 46 29 A 9.5 9.5 0 1 0 57 41 A 12 12 0 1 1 46 29 Z" fill="url(#goldGradient)" filter="url(#shadow)" />
       
-      {/* Central Spark / Divine Bead */}
-      <path d="M50 42 L52 48 L58 50 L52 52 L50 58 L48 52 L42 50 L48 48 Z" fill="#FEF3C7" />
+      {/* 4-pointed Star next to Crescent */}
+      <path d="M59 31 L60 34 L63 35 L60 36 L59 39 L58 36 L55 35 L58 34 Z" fill="url(#goldGradient)" filter="url(#shadow)" />
+
+      {/* Glowing Tasbih Beads (U-Shape) */}
+      <g filter="url(#shadow)">
+        <circle cx="31" cy="46" r="3.5" fill="url(#beadGlow)" stroke="#A7F3D0" strokeWidth="0.5" />
+        <circle cx="35" cy="54" r="4" fill="url(#beadGlow)" stroke="#A7F3D0" strokeWidth="0.5" />
+        <circle cx="41.5" cy="61" r="4.5" fill="url(#beadGlow)" stroke="#A7F3D0" strokeWidth="0.5" />
+        <circle cx="50" cy="65" r="5.5" fill="url(#beadGlow)" stroke="#A7F3D0" strokeWidth="0.5" />
+        <circle cx="58.5" cy="61" r="4.5" fill="url(#beadGlow)" stroke="#A7F3D0" strokeWidth="0.5" />
+        <circle cx="65" cy="54" r="4" fill="url(#beadGlow)" stroke="#A7F3D0" strokeWidth="0.5" />
+        <circle cx="69" cy="46" r="3.5" fill="url(#beadGlow)" stroke="#A7F3D0" strokeWidth="0.5" />
+      </g>
+
+      {/* Gold Tassel at bottom */}
+      <g filter="url(#shadow)">
+        <path d="M47 74 L53 74 L56 86 L52 86 L50 83 L48 86 L44 86 Z" fill="url(#goldGradient)" />
+        <circle cx="50" cy="73" r="2.5" fill="url(#goldGradient)" />
+      </g>
     </svg>
   );
 }
