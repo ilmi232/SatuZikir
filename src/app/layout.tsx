@@ -8,8 +8,8 @@ export const metadata: Metadata = {
   description: 'Bergabung dalam jutaan butir zikir umat hari ini. Satu niat, beribu ketukan tasbih bersama jamaah se-Nusantara.',
   manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.ico',
-    apple: '/favicon.ico', // Placeholder if no apple touch icon
+    icon: '/icon.jpg',
+    apple: '/icon.jpg',
   },
   appleWebApp: {
     capable: true,
