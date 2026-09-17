@@ -4,7 +4,7 @@ import { GoogleGenAI } from '@google/genai';
 export interface GeneratedCampaign {
   title: string;
   target_count: number;
-  category: 'syifa' | 'ramadan' | 'tolak-bala';
+  category: 'syifa' | 'ramadan' | 'tolak-bala' | 'harian';
   arabic_text: string;
   latin_text: string;
   translation_text: string;
@@ -293,7 +293,7 @@ export async function POST(req: Request) {
             campaign: {
               ...parsed,
               target_count: Number(parsed.target_count) || 10000,
-              category: ['syifa', 'ramadan', 'tolak-bala'].includes(parsed.category)
+              category: ['syifa', 'ramadan', 'tolak-bala', 'harian'].includes(parsed.category)
                 ? parsed.category
                 : 'syifa'
             }
