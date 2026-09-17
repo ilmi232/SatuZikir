@@ -447,10 +447,22 @@ export default function AdminHubPage() {
           {/* iOS-Style Pill Capsules for Quick Inspiration */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar -mx-1 px-1">
             {[
-              { label: 'Shalawat Nariyah 4444x', prompt: 'Buat campaign Shalawat Nariyah 4444x untuk kelapangan hajat dan kesembuhan saudara yang sakit' },
-              { label: 'Hasbunallah 10000x', prompt: 'Buat campaign Hasbunallah Wa Ni\'mal Wakil 10000x untuk tolak bala, bencana, dan keselamatan umat' },
-              { label: 'Istighfar 100000x', prompt: 'Buat campaign Istighfar 100000x pelebur dosa dan pembuka pintu rezeki berkah' },
-              { label: 'Tibbil Qulub 1000x', prompt: 'Buat campaign Shalawat Tibbil Qulub 1000x obat penawar hati dan kesehatan jiwa raga' },
+              { label: 'Tasbih Malaikat 100x', prompt: 'Tasbih Malaikat 100x pembuka rezeki' },
+              { label: 'Ya Kabir 232x', prompt: 'Asmaul Husna Ya Kabir 232x untuk kemuliaan dan rezeki' },
+              { label: 'Al-Fatihah 100x', prompt: 'Surah Al-Fatihah 100x' },
+              { label: 'Ayat Kursi 313x', prompt: 'Ayat Kursi 313x' },
+              { label: 'Shalawat Jibril 10000x', prompt: 'Shalawat Jibril 10000x penarik rezeki' },
+              { label: 'Ya Lathif 129x', prompt: 'Ya Lathif 129x pelembut hati' },
+              { label: 'Doa Nabi Yunus 1000x', prompt: 'Doa Nabi Yunus 1000x pelepas kesedihan' },
+              { label: 'Shalawat Munjiyat 1000x', prompt: 'Shalawat Munjiyat 1000x penyelamat kesulitan' },
+              { label: 'Tahlil 70000x', prompt: 'Tahlil Laa ilaaha illallah 70000x' },
+              { label: 'Sayyidul Istighfar 100x', prompt: 'Sayyidul Istighfar 100x' },
+              { label: 'Shalawat Fatih 1000x', prompt: 'Shalawat Fatih 1000x pembuka kebaikan' },
+              { label: 'Surah Al-Ikhlas 1000x', prompt: 'Surah Al-Ikhlas 1000x' },
+              { label: 'Shalawat Nariyah 4444x', prompt: 'Shalawat Nariyah 4444x' },
+              { label: 'Hasbunallah 10000x', prompt: 'Hasbunallah 10000x tolak bala' },
+              { label: 'Istighfar 100000x', prompt: 'Istighfar 100000x pelebur dosa' },
+              { label: 'Tibbil Qulub 1000x', prompt: 'Tibbil Qulub 1000x syifa' },
             ].map((chip, idx) => (
               <button
                 key={idx}
