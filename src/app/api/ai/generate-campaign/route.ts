@@ -129,6 +129,42 @@ function generateFallbackCampaign(prompt: string): GeneratedCampaign {
     };
   }
 
+  if (p.includes('malaikat') || (p.includes('subhanallah') && p.includes('astaghfirullah'))) {
+    return {
+      title: `Tasbih Malaikat ${parsedTarget.toLocaleString('id-ID')}x Pembuka Pintu Rezeki`,
+      target_count: parsedTarget || 100,
+      category: 'harian',
+      arabic_text: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ سُبْحَانَ اللَّهِ العَظِيْمِ أَسْتَغْفِرُ اللَّهَ',
+      latin_text: 'Subhanallah wa bihamdihi subhanallahil \'adzim astaghfirullah',
+      translation_text: 'Maha Suci Allah dengan segala puji bagi-Nya, Maha Suci Allah Yang Maha Agung, aku memohon ampun kepada Allah.',
+      description: 'Tasbih Malaikat yang sangat dianjurkan dibaca 100x antara azan dan iqamah Subuh. Keutamaannya menarik rezeki yang tak terduga dan mempermudah segala urusan.'
+    };
+  }
+
+  if (p.includes('kabir') || p.includes('ya kabir')) {
+    return {
+      title: `Asmaul Husna Ya Kabir ${parsedTarget.toLocaleString('id-ID')}x Pelimpah Rezeki & Kemuliaan`,
+      target_count: parsedTarget || 232,
+      category: 'syifa',
+      arabic_text: 'يَا كَبِيرُ',
+      latin_text: 'Yaa Kabiir',
+      translation_text: 'Wahai Yang Maha Besar.',
+      description: 'Amalan Asmaul Husna yang diniatkan untuk membukakan pintu rezeki yang melimpah serta membuka jalan-jalan kemuliaan, kehormatan, dan derajat yang tinggi.'
+    };
+  }
+
+  if (p.includes('fatihah') || p.includes('al-fatihah')) {
+    return {
+      title: `Wirid Surah Al-Fatihah ${parsedTarget.toLocaleString('id-ID')}x Induk Segala Doa`,
+      target_count: parsedTarget || 100,
+      category: 'syifa',
+      arabic_text: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ. ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ. ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ. مَـٰلِكِ يَوْمِ ٱلدِّينِ. إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ. ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ. صِرَٰطَ ٱلَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ ٱلْمَغْضُوبِ عَلَيْهِمْ وَلَا ٱلضَّآلِّينَ',
+      latin_text: 'Bismillahir-rahmanir-rahim. Alhamdu lillahi rabbil-\'alamin. Ar-rahmanir-rahim. Maliki yaumid-din. Iyyaka na\'budu wa iyyaka nasta\'in. Ihdinas-siratal-mustaqim. Siratal-lazina an\'amta \'alaihim, ghairil-maghdubi \'alaihim wa lad-dallin.',
+      translation_text: 'Dengan nama Allah Yang Maha Pengasih, Maha Penyayang. Segala puji bagi Allah, Tuhan seluruh alam. Yang Maha Pengasih, Maha Penyayang. Pemilik hari pembalasan. Hanya kepada Engkaulah kami menyembah dan hanya kepada Engkaulah kami mohon pertolongan. Tunjukilah kami jalan yang lurus, (yaitu) jalan orang-orang yang telah Engkau beri nikmat kepadanya, bukan (jalan) mereka yang dimurkai, dan bukan (pula jalan) mereka yang sesat.',
+      description: 'Ummul Qur\'an, induk dari segala doa. Diamalkan secara rutin sebagai sarana keberkahan hidup, kemudahan segala urusan, penyembuhan, dan kelapangan rezeki.'
+    };
+  }
+
   if (p.includes('nariyah') || p.includes('nariyyah')) {
     return {
       title: `Shalawat Nariyah ${parsedTarget.toLocaleString('id-ID')}x untuk Kelapangan Hajat & Kesembuhan`,
