@@ -86,7 +86,13 @@ export default function AdminHubPage() {
       setLatinText(c.latin_text || '');
       setTranslationText(c.translation_text || '');
       setDescription(c.description || '');
-      setAiSource(data.source === 'gemini-ai' ? 'Google Gemini AI' : 'SatuZikir Knowledge Engine');
+      setAiSource(
+        data.source === 'kimi-k3'
+          ? 'Kimi K3 (Moonshot AI via NVIDIA)'
+          : data.source === 'gemini-ai'
+          ? 'Google Gemini AI'
+          : 'SatuZikir Knowledge Engine'
+      );
       setAiSuccessMsg('Campaign berhasil disusun oleh AI! Formulir di bawah telah terisi otomatis.');
 
       // Scroll smoothly to the form

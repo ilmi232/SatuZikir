@@ -236,6 +236,71 @@ function generateFallbackCampaign(prompt: string): GeneratedCampaign {
   };
 }
 
+async function callKimiK3(
+  prompt: string,
+  image: string | undefined,
+  apiKey: string
+): Promise<GeneratedCampaign | null> {
+  const systemInstruction =
+    'Anda adalah asisten majelis zikir Islam SatuZikir. Tugas Anda adalah mengubah prompt admin menjadi detail kampanye zikir lengkap dan sahih dalam format JSON murni tanpa markdown wrapping.\n\nATURAN PENTING:\n1. Teks Arab berharakat, transliterasi Latin, dan terjemahan HARUS LENGKAP tanpa dipotong (terutama untuk shalawat/doa panjang seperti Shalawat Nariyah, Munjiyat, dll).\n2. Format angka Indonesia: tanda titik (.) adalah pemisah ribuan. Contoh "4.444" berarti 4444 (empat ribu empat ratus empat puluh empat). Pastikan target_count berupa angka bulat tanpa titik/koma.\n\nFormat output WAJIB JSON: {"title": string, "target_count": number, "category": "syifa"|"ramadan"|"tolak-bala"|"harian", "arabic_text": string, "latin_text": string, "translation_text": string, "description": string}';
+
+  const userContent: any[] = [
+    { type: 'text', text: `Prompt Admin: "${prompt}"\n\nSusun ke dalam format JSON yang diminta.` },
+  ];
+
+  if (image) {
+    userContent.push({
+      type: 'image_url',
+      image_url: { url: image },
+    });
+  }
+
+  const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'moonshotai/kimi-k3',
+      messages: [
+        { role: 'system', content: systemInstruction },
+        {
+          role: 'user',
+          content: image ? userContent : `Prompt Admin: "${prompt}"\n\nSusun ke dalam format JSON yang diminta.`,
+        },
+      ],
+      temperature: 0.3,
+      max_tokens: 1500,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Kimi K3 HTTP ${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  const rawText = data?.choices?.[0]?.message?.content || '';
+  const cleanJson = rawText
+    .replace(/```json/gi, '')
+    .replace(/```/g, '')
+    .trim();
+
+  const parsed = JSON.parse(cleanJson);
+  if (parsed.title && parsed.target_count && parsed.arabic_text) {
+    return {
+      ...parsed,
+      target_count: Number(parsed.target_count) || 10000,
+      category: ['syifa', 'ramadan', 'tolak-bala', 'harian'].includes(parsed.category)
+        ? parsed.category
+        : 'syifa',
+    };
+  }
+  return null;
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -248,6 +313,30 @@ export async function POST(req: Request) {
       );
     }
 
+    // 1. Prioritaskan Kimi K3 (Moonshot AI via NVIDIA NIM)
+    const nvidiaKey =
+      body.nvidiaApiKey ||
+      process.env.NVIDIA_API_KEY ||
+      process.env.KIMI_API_KEY ||
+      'nvapi-mACgxReKvlr8s68kjtXLF1TFWZ24qLcrhpcr8UM83';
+
+    if (nvidiaKey) {
+      try {
+        const kimiResult = await callKimiK3(prompt, body.image, nvidiaKey);
+        if (kimiResult) {
+          return NextResponse.json({
+            success: true,
+            source: 'kimi-k3',
+            campaign: kimiResult,
+            note: 'Dihasilkan oleh Kimi K3 (Moonshot AI via NVIDIA NIM)',
+          });
+        }
+      } catch (kimiErr) {
+        console.warn('Kimi K3 API call failed, falling back to Gemini / Knowledge Engine:', kimiErr);
+      }
+    }
+
+    // 2. Fallback ke Google Gemini
     const apiKey =
       body.apiKey ||
       process.env.GEMINI_API_KEY ||
