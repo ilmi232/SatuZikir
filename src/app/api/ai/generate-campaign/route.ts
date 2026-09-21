@@ -315,11 +315,12 @@ function generateFallbackCampaign(prompt: string): GeneratedCampaign {
   };
 }
 
-async function callKimiK3(
+async function callNvidiaNim(
   prompt: string,
   image: string | undefined,
-  apiKey: string
-): Promise<GeneratedCampaign | null> {
+  apiKey: string,
+  modelName: string = process.env.NVIDIA_MODEL || 'z-ai/glm-5.3'
+): Promise<{ campaign: GeneratedCampaign; modelUsed: string } | null> {
   const systemInstruction =
     'Anda adalah asisten majelis zikir Islam SatuZikir. Tugas Anda adalah mengubah prompt admin menjadi detail kampanye zikir lengkap dan sahih dalam format JSON murni tanpa markdown wrapping.\n\nATURAN PENTING:\n1. Teks Arab berharakat, transliterasi Latin, dan terjemahan HARUS LENGKAP tanpa dipotong (terutama untuk shalawat/doa panjang seperti Shalawat Nariyah, Munjiyat, dll).\n2. Format angka Indonesia: tanda titik (.) adalah pemisah ribuan. Contoh "4.444" berarti 4444 (empat ribu empat ratus empat puluh empat). Pastikan target_count berupa angka bulat tanpa titik/koma.\n\nFormat output WAJIB JSON: {"title": string, "target_count": number, "category": "syifa"|"ramadan"|"tolak-bala"|"harian", "arabic_text": string, "latin_text": string, "translation_text": string, "description": string}';
 
@@ -334,49 +335,66 @@ async function callKimiK3(
     });
   }
 
-  const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'moonshotai/kimi-k3',
-      messages: [
-        { role: 'system', content: systemInstruction },
-        {
-          role: 'user',
-          content: image ? userContent : `Prompt Admin: "${prompt}"\n\nSusun ke dalam format JSON yang diminta.`,
+  // Model list to try: primary specified model, then kimi-k3 as alternate
+  const modelsToTry = [modelName];
+  if (!modelsToTry.includes('moonshotai/kimi-k3')) {
+    modelsToTry.push('moonshotai/kimi-k3');
+  }
+
+  for (const model of modelsToTry) {
+    try {
+      const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
-      ],
-      temperature: 0.3,
-      max_tokens: 1500,
-    }),
-  });
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: systemInstruction },
+            {
+              role: 'user',
+              content: image ? userContent : `Prompt Admin: "${prompt}"\n\nSusun ke dalam format JSON yang diminta.`,
+            },
+          ],
+          temperature: 0.3,
+          max_tokens: 1500,
+        }),
+      });
 
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Kimi K3 HTTP ${response.status}: ${errText}`);
+      if (!response.ok) {
+        const errText = await response.text();
+        console.warn(`NVIDIA NIM (${model}) HTTP ${response.status}:`, errText);
+        continue; // Try next model
+      }
+
+      const data = await response.json();
+      const rawText = data?.choices?.[0]?.message?.content || '';
+      const cleanJson = rawText
+        .replace(/```json/gi, '')
+        .replace(/```/g, '')
+        .trim();
+
+      const parsed = JSON.parse(cleanJson);
+      if (parsed.title && parsed.target_count && parsed.arabic_text) {
+        return {
+          campaign: {
+            ...parsed,
+            target_count: Number(parsed.target_count) || 10000,
+            category: ['syifa', 'ramadan', 'tolak-bala', 'harian'].includes(parsed.category)
+              ? parsed.category
+              : 'syifa',
+          },
+          modelUsed: model,
+        };
+      }
+    } catch (err) {
+      console.warn(`Error calling NVIDIA NIM (${model}):`, err);
+    }
   }
 
-  const data = await response.json();
-  const rawText = data?.choices?.[0]?.message?.content || '';
-  const cleanJson = rawText
-    .replace(/```json/gi, '')
-    .replace(/```/g, '')
-    .trim();
-
-  const parsed = JSON.parse(cleanJson);
-  if (parsed.title && parsed.target_count && parsed.arabic_text) {
-    return {
-      ...parsed,
-      target_count: Number(parsed.target_count) || 10000,
-      category: ['syifa', 'ramadan', 'tolak-bala', 'harian'].includes(parsed.category)
-        ? parsed.category
-        : 'syifa',
-    };
-  }
   return null;
 }
 
@@ -392,26 +410,29 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1. Prioritaskan Kimi K3 (Moonshot AI via NVIDIA NIM)
+    // 1. Prioritaskan NVIDIA NIM (GLM-5.3 / Kimi K3)
     const nvidiaKey =
       body.nvidiaApiKey ||
       process.env.NVIDIA_API_KEY ||
       process.env.KIMI_API_KEY ||
-      'nvapi-mACgxReKvlr8s68kjtXLF1TFWZ24qLcrhpcr8UM83';
+      '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';
+
+    const preferredModel = body.model || process.env.NVIDIA_MODEL || 'z-ai/glm-5.3';
 
     if (nvidiaKey) {
       try {
-        const kimiResult = await callKimiK3(prompt, body.image, nvidiaKey);
-        if (kimiResult) {
+        const nimResult = await callNvidiaNim(prompt, body.image, nvidiaKey, preferredModel);
+        if (nimResult) {
           return NextResponse.json({
             success: true,
-            source: 'kimi-k3',
-            campaign: kimiResult,
-            note: 'Dihasilkan oleh Kimi K3 (Moonshot AI via NVIDIA NIM)',
+            source: 'nvidia-nim',
+            modelName: nimResult.modelUsed,
+            campaign: nimResult.campaign,
+            note: `Dihasilkan oleh ${nimResult.modelUsed} via NVIDIA NIM`,
           });
         }
-      } catch (kimiErr) {
-        console.warn('Kimi K3 API call failed, falling back to Gemini / Knowledge Engine:', kimiErr);
+      } catch (nimErr) {
+        console.warn('NVIDIA NIM API call failed, falling back to Gemini / Knowledge Engine:', nimErr);
       }
     }
 

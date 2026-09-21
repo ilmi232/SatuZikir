@@ -86,9 +86,10 @@ export default function AdminHubPage() {
       setLatinText(c.latin_text || '');
       setTranslationText(c.translation_text || '');
       setDescription(c.description || '');
-      if (data.source === 'kimi-k3') {
-        setAiSource('Kimi K3 (Moonshot AI via NVIDIA)');
-        setAiSuccessMsg('Campaign berhasil disusun oleh Kimi K3 AI!');
+      if (data.source === 'nvidia-nim' || data.source === 'kimi-k3') {
+        const modelLabel = data.modelName ? `${data.modelName} (NVIDIA NIM)` : 'NVIDIA NIM AI';
+        setAiSource(modelLabel);
+        setAiSuccessMsg(`Campaign berhasil disusun oleh ${modelLabel}!`);
       } else if (data.source === 'gemini-ai') {
         setAiSource('Google Gemini AI');
         setAiSuccessMsg('Campaign berhasil disusun oleh Google Gemini AI!');
