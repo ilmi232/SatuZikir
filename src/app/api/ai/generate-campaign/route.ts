@@ -13,12 +13,86 @@ export interface GeneratedCampaign {
 
 function generateFallbackCampaign(prompt: string): GeneratedCampaign {
   const p = prompt.toLowerCase();
-  const numberMatch = prompt.match(/\b\d+([.,]\d+)*\b/);
-  let parsedTarget = 10000;
+  const numberMatch = prompt.match(/(\d[\d.,]*)\s*x?/i);
+  let parsedTarget = 1000;
   if (numberMatch) {
-    const rawNum = numberMatch[0].replace(/[.,]/g, '');
+    const rawNum = numberMatch[1].replace(/[.,]/g, '');
     const n = parseInt(rawNum, 10);
     if (!isNaN(n) && n > 0) parsedTarget = n;
+  }
+
+  // Shalawat Nabi Umum & Khusus
+  if (p.includes('sholawat') || p.includes('shalawat') || p.includes('selawat')) {
+    if (p.includes('nariyah') || p.includes('nariyyah')) {
+      return {
+        title: `Shalawat Nariyah ${parsedTarget.toLocaleString('id-ID')}x untuk Kelapangan Hajat & Kesembuhan`,
+        target_count: parsedTarget || 4444,
+        category: 'syifa',
+        arabic_text: 'اللَّهُمَّ صَلِّ صَلاَةً كَامِلَةً وَسَلِّمْ سَلاَماً تَامّاً عَلَى سَيِّدِنَا مُحَمَّدٍ الَّذِي تَنْحَلُّ بِهِ الْعُقَدُ وَتَنْفَرِجُ بِهِ الْكُرَبُ وَتُقْضَى بِهِ الْحَوَائِجُ...',
+        latin_text: 'Allahumma shalli shalatan kaamilatan wa sallim salaaman taamman ‘ala sayyidina Muhammadinilladzi tanhallu bihil ‘uqadu...',
+        translation_text: 'Ya Allah, limpahkanlah shalawat yang sempurna dan salam yang tuntas kepada junjungan kami Nabi Muhammad, yang dengannya terlepas segala ikatan...',
+        description: 'Amalan pembuka jalan buntu, ikhtiar syifa, dan terkabulnya hajat besar bersama jamaah.'
+      };
+    }
+
+    if (p.includes('tibbil') || p.includes('thibbil')) {
+      return {
+        title: `Shalawat Tibbil Qulub ${parsedTarget.toLocaleString('id-ID')}x Penawar Jiwa & Kesembuhan Raga`,
+        target_count: parsedTarget || 1000,
+        category: 'syifa',
+        arabic_text: 'اللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ طِبِّ الْقُلُوبِ وَدَوَائِهَا، وَعَافِيَةِ الأَبْدَانِ وَشِفَائِهَا، وَنُورِ الأَبْصَارِ وَضِيَائِهَا، وَعَلَى آلِهِ وَصَحْبِهِ وَسَلِّمْ',
+        latin_text: 'Allahumma shalli ‘ala sayyidina Muhammadin thibbil quluubi wa dawa-ihaa, wa ‘aafiyatil abdaani wa syifaa-ihaa, wa nuuril abshaari wa dhiyaa-ihaa, wa ‘ala aalihi wa shahbihi wa sallim',
+        translation_text: 'Ya Allah, curahkanlah rahmat kepada junjungan kami Nabi Muhammad sebagai obat hati dan penawarnya, penyehat badan dan kesembuhannya, serta cahaya penglihatan dan sinarnya.',
+        description: 'Majelis zikir syifa mengetuk pintu kesembuhan jasmani dan ketenangan rohani.'
+      };
+    }
+
+    if (p.includes('jibril')) {
+      return {
+        title: `Shalawat Jibril ${parsedTarget.toLocaleString('id-ID')}x Penarik Pintu Rezeki`,
+        target_count: parsedTarget || 10000,
+        category: 'syifa',
+        arabic_text: 'صَلَّى ٱللَّهُ عَلَىٰ مُحَمَّدٍ',
+        latin_text: 'Shallallahu \'ala Muhammad',
+        translation_text: 'Semoga Allah melimpahkan shalawat atas Nabi Muhammad.',
+        description: 'Shalawat Jibril dikenal luas sebagai amalan mustajab pelancar rezeki dari arah yang tak disangka-sangka.'
+      };
+    }
+
+    if (p.includes('munjiyat')) {
+      return {
+        title: `Shalawat Munjiyat ${parsedTarget.toLocaleString('id-ID')}x Penyelamat Kesulitan`,
+        target_count: parsedTarget || 1000,
+        category: 'syifa',
+        arabic_text: 'اَللّٰهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ صَلاَةً تُنْجِيْنَا بِهَا مِنْ جَمِيْعِ الْأَهْوَالِ وَالْاٰفَاتِ، وَتَقْضِيْ لَنَا بِهَا جَمِيْعَ الْحَاجَاتِ...',
+        latin_text: 'Allahumma shalli \'ala sayyidina Muhammadin shalatan tunjina biha min jami\'il ahwali wal afat...',
+        translation_text: 'Ya Allah, limpahkanlah rahmat kepada junjungan kami Nabi Muhammad, yang dengan shalawat itu Engkau menyelamatkan kami dari semua keadaan yang menakutkan...',
+        description: 'Shalawat penyelamat dari krisis, hutang, dan musibah besar.'
+      };
+    }
+
+    if (p.includes('fatih')) {
+      return {
+        title: `Shalawat Fatih ${parsedTarget.toLocaleString('id-ID')}x Pembuka Pintu Kebaikan`,
+        target_count: parsedTarget || 1000,
+        category: 'syifa',
+        arabic_text: 'اللَّهُمَّ صَلِّ عَلى سَيِّدِنَا مُحَمَّدٍ الفاتِحِ لِمَا أُغْلِقَ و الخَاتِمِ لِمَا سَبَقَ نَاصِرِ الحَقِّ بَالحَقَّ و الهَادِي إلى صِرَاطِكَ المُسْتَقِيمِ...',
+        latin_text: 'Allahumma shalli \'ala sayyidina Muhammadinil faatihi limaa ughliqa wal khaatimi limaa sabaqa...',
+        translation_text: 'Ya Allah, limpahkanlah rahmat kepada junjungan kami Nabi Muhammad, pembuka apa yang terkunci...',
+        description: 'Shalawat untuk membuka jalan buntu dan menembus kesulitan hidup.'
+      };
+    }
+
+    // Default Shalawat Nabi
+    return {
+      title: `Shalawat Nabi ${parsedTarget.toLocaleString('id-ID')}x Pembawa Rahmat & Syafaat`,
+      target_count: parsedTarget,
+      category: 'syifa',
+      arabic_text: 'اللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ وَعَلَى آلِ سَيِّدِنَا مُحَمَّدٍ',
+      latin_text: 'Allahumma shalli ‘ala sayyidina Muhammadin wa ‘ala aali sayyidina Muhammad',
+      translation_text: 'Ya Allah, limpahkanlah shalawat dan salam atas junjungan kami Nabi Muhammad beserta segenap keluarga junjungan kami Nabi Muhammad.',
+      description: `Amalan pembacaan shalawat sebanyak ${parsedTarget.toLocaleString('id-ID')}x untuk mengharap syafaat Baginda Nabi SAW dan meraih keberkahan hidup.`
+    };
   }
 
   if (p.includes('ikhlas') || p.includes('ikhlash') || p.includes('ahad')) {
@@ -225,9 +299,14 @@ function generateFallbackCampaign(prompt: string): GeneratedCampaign {
     };
   }
 
+  const cleanPrompt = prompt
+    .replace(/^(buatkan|bikin|tolong|buat)\s+(saya\s+)?(kan\s+)?(campaign\s+)?/i, '')
+    .trim();
+  const titleText = cleanPrompt.length > 0 ? cleanPrompt.charAt(0).toUpperCase() + cleanPrompt.slice(1) : 'Zikir & Doa Bersama';
+
   return {
-    title: `Majelis Zikir Umat ${parsedTarget.toLocaleString('id-ID')}x: ${prompt.slice(0, 45)}`,
-    target_count: parsedTarget || 10000,
+    title: `${titleText} ${parsedTarget.toLocaleString('id-ID')}x`,
+    target_count: parsedTarget,
     category: p.includes('bala') ? 'tolak-bala' : p.includes('hajat') ? 'syifa' : 'ramadan',
     arabic_text: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ سُبْحَانَ اللَّهِ الْعَظِيمِ',
     latin_text: 'Subhaanallaahi wa bihamdihii subhaanallaahil ‘adziim',

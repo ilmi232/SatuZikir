@@ -86,14 +86,16 @@ export default function AdminHubPage() {
       setLatinText(c.latin_text || '');
       setTranslationText(c.translation_text || '');
       setDescription(c.description || '');
-      setAiSource(
-        data.source === 'kimi-k3'
-          ? 'Kimi K3 (Moonshot AI via NVIDIA)'
-          : data.source === 'gemini-ai'
-          ? 'Google Gemini AI'
-          : 'SatuZikir Knowledge Engine'
-      );
-      setAiSuccessMsg('Campaign berhasil disusun oleh AI! Formulir di bawah telah terisi otomatis.');
+      if (data.source === 'kimi-k3') {
+        setAiSource('Kimi K3 (Moonshot AI via NVIDIA)');
+        setAiSuccessMsg('Campaign berhasil disusun oleh Kimi K3 AI!');
+      } else if (data.source === 'gemini-ai') {
+        setAiSource('Google Gemini AI');
+        setAiSuccessMsg('Campaign berhasil disusun oleh Google Gemini AI!');
+      } else {
+        setAiSource('SatuZikir Knowledge Engine');
+        setAiSuccessMsg('Disusun oleh Database Syiar SatuZikir (Mode Cerdas Cadangan).');
+      }
 
       // Scroll smoothly to the form
       setTimeout(() => {
