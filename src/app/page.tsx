@@ -19,9 +19,11 @@ export default function HomePage() {
   }, []);
 
   const filteredCampaigns = campaigns.filter((c) => {
+    if (selectedCategory === 'selesai') return c.status === 'completed';
+    if (c.status === 'completed') return false;
     if (selectedCategory === 'semua') return true;
     if (selectedCategory === 'syifa') return c.category === 'syifa' || !c.category;
-    if (selectedCategory === 'ramadan') return c.category === 'ramadan';
+    if (selectedCategory === 'ramadan') return c.category === 'ramadan' || c.category === 'harian';
     if (selectedCategory === 'tolak-bala') return c.category === 'tolak-bala';
     return true;
   });
@@ -84,6 +86,7 @@ export default function HomePage() {
             { id: 'syifa', label: 'Hajat & Syifa' },
             { id: 'ramadan', label: 'Ramadan & Harian' },
             { id: 'tolak-bala', label: 'Tolak Bala & Duka' },
+            { id: 'selesai', label: 'Telah Khatam' },
           ].map((cat) => {
             const isActive = selectedCategory === cat.id;
             return (

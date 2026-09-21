@@ -43,6 +43,7 @@ export default function AdminHubPage() {
   // Counter adjustment modal state
   const [selectedForReset, setSelectedForReset] = useState<Campaign | null>(null);
   const [newCountInput, setNewCountInput] = useState<number>(0);
+  const [campaignFilter, setCampaignFilter] = useState<'semua' | 'active' | 'completed'>('semua');
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -207,7 +208,7 @@ export default function AdminHubPage() {
   };
 
   const handleCloseCampaign = async (campaign: Campaign) => {
-    if (confirm(`Tutup campaign "${campaign.title}"?`)) {
+    if (confirm(`Tutup majelis "${campaign.title}"? Majelis ini akan ditandai selesai dan disembunyikan dari beranda publik aktif.`)) {
       await DataService.saveCampaign({
         ...campaign,
         status: 'completed',
@@ -216,8 +217,26 @@ export default function AdminHubPage() {
     }
   };
 
+  const handleReopenCampaign = async (campaign: Campaign) => {
+    if (confirm(`Buka kembali majelis "${campaign.title}" agar kembali aktif di beranda?`)) {
+      await DataService.saveCampaign({
+        ...campaign,
+        status: 'active',
+      });
+      await loadCampaigns();
+    }
+  };
+
+  const handleDeleteCampaign = async (campaign: Campaign) => {
+    if (confirm(`Yakin ingin MENGHAPUS PERMANEN campaign "${campaign.title}"? Seluruh data hitungan tidak dapat dipulihkan.`)) {
+      await DataService.deleteCampaign(campaign.id);
+      await loadCampaigns();
+    }
+  };
+
   const totalZikir = campaigns.reduce((acc, c) => acc + Number(c.current_count), 0);
-  const activeCount = campaigns.filter((c) => c.status === 'active').length;
+  const activeCount = campaigns.filter((c) => c.status !== 'completed').length;
+  const completedCount = campaigns.filter((c) => c.status === 'completed').length;
 
   if (loading) {
     return (
@@ -690,101 +709,167 @@ export default function AdminHubPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h2 className="font-headline text-base text-[#131b2e] font-bold">
-              Daftar Campaign Berjalan
+              Daftar Campaign & Majelis
             </h2>
             <span className="w-1.5 h-1.5 rounded-full bg-[#31c98f] animate-ping" />
           </div>
-          <span className="text-[10px] text-[#404944]">{campaigns.length} Campaign</span>
+          <span className="text-[10px] text-[#404944]">{campaigns.length} Total</span>
         </div>
 
-        {campaigns.map((c) => {
-          const percent = Math.min(100, Math.round((c.current_count / c.target_count) * 100));
-          return (
-            <div
-              key={c.id}
-              className="flex flex-col bg-white p-3.5 rounded-2xl shadow-sm border border-[#eaedff] space-y-2"
+        {/* Filter Tab: Semua | Aktif | Selesai / Ditutup */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+          {[
+            { id: 'semua', label: `Semua (${campaigns.length})` },
+            { id: 'active', label: `Aktif (${activeCount})` },
+            { id: 'completed', label: `Selesai / Ditutup (${completedCount})` },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setCampaignFilter(tab.id as 'semua' | 'active' | 'completed')}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                campaignFilter === tab.id
+                  ? 'bg-[#003527] text-white shadow-sm'
+                  : 'bg-[#eaedff] text-[#404944] hover:bg-[#e2e7ff]'
+              }`}
             >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex flex-col min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#ffdcc3] text-[#2f1500]">
-                      {c.category === 'ramadan'
-                        ? 'Ramadan'
-                        : c.category === 'tolak-bala'
-                        ? 'Tolak Bala'
-                        : 'Hajat & Syifa'}
-                    </span>
-                    <span className="text-[10px] text-[#31c98f] font-semibold flex items-center gap-0.5">
-                      <span className="w-1 h-1 rounded-full bg-[#31c98f]" />
-                      Atomic Counter
-                    </span>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {campaigns
+          .filter((c) => {
+            if (campaignFilter === 'active') return c.status !== 'completed';
+            if (campaignFilter === 'completed') return c.status === 'completed';
+            return true;
+          })
+          .map((c) => {
+            const percent = Math.min(100, Math.round((c.current_count / c.target_count) * 100));
+            const isClosed = c.status === 'completed';
+
+            return (
+              <div
+                key={c.id}
+                className={`flex flex-col bg-white p-3.5 rounded-2xl shadow-sm border space-y-2 transition-all ${
+                  isClosed ? 'border-[#ffdad6] opacity-85' : 'border-[#eaedff]'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#ffdcc3] text-[#2f1500]">
+                        {c.category === 'ramadan'
+                          ? 'Ramadan'
+                          : c.category === 'tolak-bala'
+                          ? 'Tolak Bala'
+                          : c.category === 'harian'
+                          ? 'Harian'
+                          : 'Hajat & Syifa'}
+                      </span>
+                      {isClosed ? (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#ffdad6] text-[#93000a] flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[12px]">check_circle</span>
+                          Selesai / Ditutup
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#b0f0d6] text-[#003527] flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#31c98f] animate-pulse" />
+                          Majelis Aktif
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="font-headline text-sm font-bold text-[#003527] mt-1 truncate">
+                      {c.title}
+                    </h3>
                   </div>
 
-                  <h3 className="font-headline text-sm font-bold text-[#003527] mt-0.5 truncate">
-                    {c.title}
-                  </h3>
+                  <div className="text-right shrink-0">
+                    <span className="text-[10px] text-[#404944]">Target</span>
+                    <p className="font-headline text-sm font-bold text-[#131b2e]">
+                      {c.target_count.toLocaleString()}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="text-right shrink-0">
-                  <span className="text-[10px] text-[#404944]">Target</span>
-                  <p className="font-headline text-sm font-bold text-[#131b2e]">
-                    {c.target_count.toLocaleString()}
-                  </p>
+                {/* Progress Bar */}
+                <div className="flex flex-col space-y-1">
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-[#003527] font-bold">
+                      {c.current_count.toLocaleString()} Selesai
+                    </span>
+                    <span className="text-[#404944] font-medium">{percent}%</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-[#e2e7ff] overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        isClosed ? 'bg-[#904d00]' : 'bg-[#003527]'
+                      }`}
+                      style={{ width: `${percent}%` }}
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* Progress Bar */}
-              <div className="flex flex-col space-y-1">
-                <div className="flex justify-between text-[11px]">
-                  <span className="text-[#003527] font-bold">
-                    {c.current_count.toLocaleString()} Selesai
-                  </span>
-                  <span className="text-[#404944] font-medium">{percent}%</span>
-                </div>
-                <div className="w-full h-2 rounded-full bg-[#e2e7ff] overflow-hidden">
-                  <div
-                    className="h-full bg-[#003527] rounded-full transition-all duration-500"
-                    style={{ width: `${percent}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center justify-between pt-1">
-                <Link
-                  href={`/campaign/${c.slug}`}
-                  className="text-[11px] font-bold text-[#003527] flex items-center gap-1 hover:underline"
-                >
-                  <span className="material-symbols-outlined text-[15px]">sensors</span>
-                  <span>Buka Layar Zikir</span>
-                </Link>
-
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => {
-                      setSelectedForReset(c);
-                      setNewCountInput(c.current_count);
-                    }}
-                    type="button"
-                    className="px-2.5 py-1 rounded-lg bg-[#f2f3ff] hover:bg-[#e2e7ff] text-[#404944] text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                {/* Actions */}
+                <div className="flex items-center justify-between pt-1 flex-wrap gap-2">
+                  <Link
+                    href={`/campaign/${c.slug}`}
+                    className="text-[11px] font-bold text-[#003527] flex items-center gap-1 hover:underline"
                   >
-                    <span className="material-symbols-outlined text-[14px]">restart_alt</span>
-                    <span>Koreksi</span>
-                  </button>
+                    <span className="material-symbols-outlined text-[15px]">sensors</span>
+                    <span>Buka Layar Zikir</span>
+                  </Link>
 
-                  <button
-                    onClick={() => handleCloseCampaign(c)}
-                    type="button"
-                    className="px-2.5 py-1 rounded-lg bg-[#ffdad6] text-[#93000a] text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-[14px]">stop_circle</span>
-                    <span>Tutup</span>
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => {
+                        setSelectedForReset(c);
+                        setNewCountInput(c.current_count);
+                      }}
+                      type="button"
+                      className="px-2.5 py-1 rounded-lg bg-[#f2f3ff] hover:bg-[#e2e7ff] text-[#404944] text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">restart_alt</span>
+                      <span>Koreksi</span>
+                    </button>
+
+                    {isClosed ? (
+                      <button
+                        onClick={() => handleReopenCampaign(c)}
+                        type="button"
+                        title="Buka kembali majelis agar aktif"
+                        className="px-2.5 py-1 rounded-lg bg-[#b0f0d6] hover:bg-[#80e5be] text-[#003527] text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">play_circle</span>
+                        <span>Buka Lagi</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleCloseCampaign(c)}
+                        type="button"
+                        title="Tutup majelis ini"
+                        className="px-2.5 py-1 rounded-lg bg-[#ffdcc3] hover:bg-[#ffdad6] text-[#904d00] hover:text-[#93000a] text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">stop_circle</span>
+                        <span>Tutup</span>
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => handleDeleteCampaign(c)}
+                      type="button"
+                      title="Hapus permanen majelis ini"
+                      className="px-2 py-1 rounded-lg bg-[#f2f3ff] hover:bg-[#ffdad6] text-[#404944] hover:text-[#93000a] text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">delete</span>
+                      <span>Hapus</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
 
       {/* Modal Koreksi / Reset Counter */}

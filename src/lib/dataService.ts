@@ -481,6 +481,54 @@ export const DataService = {
             .single();
 
           if (!error && data) {
+            const list = getLocalCampaigns();
+            const idx = list.findIndex((c) => c.id === data.id || c.slug === data.slug);
+            if (idx !== -1) {
+              list[idx] = data as Campaign;
+              saveLocalCampaigns(list);
+            }
+            return data as Campaign;
+          }
+        } else if (campaign.slug) {
+          // Check if exists by slug in Supabase
+          const { data: existing } = await supabase
+            .from('campaigns')
+            .select('id')
+            .eq('slug', campaign.slug)
+            .maybeSingle();
+
+          if (existing?.id) {
+            const { data, error } = await supabase
+              .from('campaigns')
+              .update(payload)
+              .eq('id', existing.id)
+              .select()
+              .single();
+
+            if (!error && data) {
+              const list = getLocalCampaigns();
+              const idx = list.findIndex((c) => c.id === data.id || c.slug === data.slug);
+              if (idx !== -1) {
+                list[idx] = data as Campaign;
+                saveLocalCampaigns(list);
+              }
+              return data as Campaign;
+            }
+          }
+
+          // Insert new campaign
+          const { data, error } = await supabase
+            .from('campaigns')
+            .insert({
+              ...payload,
+              current_count: campaign.current_count || 0,
+              status: campaign.status || 'active',
+              created_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
+
+          if (!error && data) {
             return data as Campaign;
           }
         } else {
@@ -539,8 +587,7 @@ export const DataService = {
           ? supabase.from('campaigns').delete().eq('id', id)
           : supabase.from('campaigns').delete().eq('slug', id);
 
-        const { error } = await query;
-        if (!error) return true;
+        await query;
       } catch (err) {
         console.warn('Supabase deleteCampaign fallback to local', err);
       }
