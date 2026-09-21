@@ -10,7 +10,6 @@ import Link from 'next/link';
 import { recordSession } from '@/lib/localStats';
 import ShareSyiarButton from '@/components/ShareSyiarButton';
 import SyiarCardModal from '@/components/SyiarCardModal';
-import LiveBadge3D from '@/components/LiveBadge3D';
 
 interface TasbihScreenProps {
   campaign: Campaign;
@@ -266,8 +265,6 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
             <span className="text-xs font-semibold">Katalog Zikir</span>
           </Link>
-
-          <LiveBadge3D className="h-7" />
         </div>
 
         <div>
@@ -311,9 +308,8 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
           </div>
 
           <div className="flex justify-between items-center pt-0.5 text-[11px]">
-            <span className="text-[#404944] flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px] text-[#004f34]">bolt</span>
-              <span>Target Majelis Tercapai {percentage}%</span>
+            <span className="text-[#404944]">
+              Target Majelis Tercapai {percentage}%
             </span>
             <span className="text-[#003527] font-semibold flex items-center gap-1">
               <span className="material-symbols-outlined text-[14px] text-[#31c98f]">sync</span>
@@ -379,13 +375,7 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
       {/* 4. Live Ticker Doa & Hajat Jamaah */}
       <div className="px-4 mb-3">
         <div className="bg-[#e2e7ff]/70 rounded-xl px-3 py-2 flex items-center gap-2 overflow-hidden shadow-sm border border-[#dae2fd]">
-          <div className="flex items-center gap-1 shrink-0 text-[#003527]">
-            <span
-              className="material-symbols-outlined text-[16px] text-[#904d00]"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              favorite
-            </span>
+          <div className="shrink-0 text-[#003527]">
             <span className="text-[11px] font-bold uppercase tracking-wider">Hajat Jamaah:</span>
           </div>
 
@@ -410,12 +400,6 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
       <div className="flex flex-col items-center justify-center px-4 mb-4 select-none">
         {/* User Personal Contribution Counter */}
         <div className="flex flex-col items-center mb-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#f2f3ff] mb-1 shadow-sm border border-[#eaedff]">
-            <span className="material-symbols-outlined text-[#904d00] text-[16px]">touch_app</span>
-            <span className="text-[11px] text-[#404944] font-medium">
-              Kontribusi Pribadi Sesi Ini
-            </span>
-          </div>
           <div className="flex items-baseline gap-1">
             <span className="font-headline text-3xl text-[#003527] font-bold tracking-tight">
               {personalCount}
