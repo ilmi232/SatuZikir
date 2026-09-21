@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { recordSession } from '@/lib/localStats';
 import ShareSyiarButton from '@/components/ShareSyiarButton';
 import SyiarCardModal from '@/components/SyiarCardModal';
+import LiveBadge3D from '@/components/LiveBadge3D';
 
 interface TasbihScreenProps {
   campaign: Campaign;
@@ -266,15 +267,7 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
             <span className="text-xs font-semibold">Katalog Zikir</span>
           </Link>
 
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#e2e7ff] shadow-sm">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#31c98f] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#31c98f]" />
-            </span>
-            <span className="text-[11px] text-[#131b2e] font-bold">
-              Majelis Live
-            </span>
-          </div>
+          <LiveBadge3D className="h-7" />
         </div>
 
         <div>

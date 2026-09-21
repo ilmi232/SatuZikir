@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Campaign } from '@/types';
+import LiveBadge3D from './LiveBadge3D';
 
 interface CampaignCardProps {
   campaign: Campaign;
@@ -51,10 +52,7 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
           {catMeta.label}
         </span>
 
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/40 dark:bg-black/40 text-[#003527] dark:text-[#4edea3] text-[11px] font-medium backdrop-blur-sm border border-white/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span>Majelis Live</span>
-        </div>
+        <LiveBadge3D className="h-7" />
       </div>
 
       {/* Title & Description */}
