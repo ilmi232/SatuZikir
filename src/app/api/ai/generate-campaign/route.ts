@@ -398,6 +398,66 @@ async function callNvidiaNim(
   return null;
 }
 
+async function callGemini(
+  prompt: string,
+  image: string | undefined,
+  apiKey: string
+): Promise<GeneratedCampaign | null> {
+  const systemInstruction =
+    'Anda adalah asisten majelis zikir Islam SatuZikir. Tugas Anda adalah mengubah prompt admin menjadi detail kampanye zikir lengkap dan sahih dalam format JSON murni tanpa markdown wrapping.\n\nATURAN PENTING:\n1. Teks Arab berharakat, transliterasi Latin, dan terjemahan HARUS LENGKAP tanpa dipotong (terutama untuk shalawat/doa panjang seperti Shalawat Nariyah, Munjiyat, dll).\n2. Format angka Indonesia: tanda titik (.) adalah pemisah ribuan. Contoh "4.444" berarti 4444 (empat ribu empat ratus empat puluh empat). Pastikan target_count berupa angka bulat tanpa titik/koma.\n\nFormat output WAJIB: {"title": string, "target_count": number, "category": "syifa"|"ramadan"|"tolak-bala"|"harian", "arabic_text": string, "latin_text": string, "translation_text": string, "description": string}';
+
+  const parts: any[] = [
+    {
+      text: `${systemInstruction}\n\nPrompt Admin: "${prompt}"\n\n[Jika ada gambar, ekstrak teks Arab/Latin dari gambar, lengkapi yang kurang, dan hitung target yang diminta.]\n\nJSON Output:`,
+    },
+  ];
+
+  if (image) {
+    const match = image.match(/^data:([^;]+);base64,(.+)$/);
+    if (match) {
+      parts.push({
+        inlineData: {
+          mimeType: match[1],
+          data: match[2],
+        },
+      });
+    }
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
+  const models = ['gemini-3.5-flash', 'gemini-3.6-flash'];
+
+  for (const model of models) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: parts,
+      });
+
+      const rawText = response.text || '';
+      const cleanJson = rawText
+        .replace(/```json/gi, '')
+        .replace(/```/g, '')
+        .trim();
+
+      const parsed = JSON.parse(cleanJson) as GeneratedCampaign;
+      if (parsed.title && parsed.target_count && parsed.arabic_text) {
+        return {
+          ...parsed,
+          target_count: Number(parsed.target_count) || 10000,
+          category: ['syifa', 'ramadan', 'tolak-bala', 'harian'].includes(parsed.category)
+            ? parsed.category
+            : 'syifa',
+        };
+      }
+    } catch (err) {
+      console.warn(`Gemini (${model}) attempt failed:`, err);
+    }
+  }
+
+  return null;
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -410,12 +470,35 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1. Prioritaskan NVIDIA NIM (GLM-5.3 / Kimi K3)
+    // 1. Prioritaskan Google Gemini (Kunci Aktif & Terverifikasi)
+    const geminiKey =
+      body.apiKey ||
+      process.env.GEMINI_API_KEY ||
+      process.env.GOOGLE_API_KEY ||
+      '';
+
+    if (geminiKey) {
+      try {
+        const geminiResult = await callGemini(prompt, body.image, geminiKey);
+        if (geminiResult) {
+          return NextResponse.json({
+            success: true,
+            source: 'gemini-ai',
+            campaign: geminiResult,
+            note: 'Dihasilkan oleh Google Gemini AI',
+          });
+        }
+      } catch (geminiError) {
+        console.warn('Gemini API call failed, trying NVIDIA NIM / Knowledge Engine:', geminiError);
+      }
+    }
+
+    // 2. Coba NVIDIA NIM (GLM-5.3 / Kimi K3)
     const nvidiaKey =
       body.nvidiaApiKey ||
       process.env.NVIDIA_API_KEY ||
       process.env.KIMI_API_KEY ||
-      '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';
+      '';
 
     const preferredModel = body.model || process.env.NVIDIA_MODEL || 'z-ai/glm-5.3';
 
@@ -432,73 +515,17 @@ export async function POST(req: Request) {
           });
         }
       } catch (nimErr) {
-        console.warn('NVIDIA NIM API call failed, falling back to Gemini / Knowledge Engine:', nimErr);
+        console.warn('NVIDIA NIM API call failed, falling back to Knowledge Engine:', nimErr);
       }
     }
 
-    // 2. Fallback ke Google Gemini
-    const apiKey =
-      body.apiKey ||
-      process.env.GEMINI_API_KEY ||
-      process.env.GOOGLE_API_KEY ||
-      '';
-
-    if (apiKey) {
-      try {
-        const ai = new GoogleGenAI({ apiKey });
-        const systemInstruction = 'Anda adalah asisten majelis zikir Islam SatuZikir. Tugas Anda adalah mengubah prompt admin menjadi detail kampanye zikir lengkap dan sahih dalam format JSON murni tanpa markdown wrapping.\n\nATURAN PENTING:\n1. Teks Arab berharakat, transliterasi Latin, dan terjemahan HARUS LENGKAP tanpa dipotong (terutama untuk shalawat/doa panjang seperti Shalawat Nariyah, Munjiyat, dll).\n2. Format angka Indonesia: tanda titik (.) adalah pemisah ribuan. Contoh "4.444" berarti 4444 (empat ribu empat ratus empat puluh empat). Pastikan target_count berupa angka bulat tanpa titik/koma.\n\nFormat output WAJIB: {"title": string, "target_count": number, "category": "syifa"|"ramadan"|"tolak-bala", "arabic_text": string, "latin_text": string, "translation_text": string, "description": string}';
-
-        const parts: any[] = [{ text: `${systemInstruction}\n\nPrompt Admin: "${prompt}"\n\n[Jika ada gambar, ekstrak teks Arab/Latin dari gambar, lengkapi yang kurang, dan hitung target yang diminta.]\n\nJSON Output:` }];
-
-        if (body.image) {
-          const match = body.image.match(/^data:([^;]+);base64,(.+)$/);
-          if (match) {
-            parts.push({
-              inlineData: {
-                mimeType: match[1],
-                data: match[2]
-              }
-            });
-          }
-        }
-
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: parts
-        });
-
-        const rawText = response.text || '';
-        const cleanJson = rawText
-          .replace(/```json/gi, '')
-          .replace(/```/g, '')
-          .trim();
-
-        const parsed = JSON.parse(cleanJson) as GeneratedCampaign;
-
-        if (parsed.title && parsed.target_count && parsed.arabic_text) {
-          return NextResponse.json({
-            success: true,
-            source: 'gemini-ai',
-            campaign: {
-              ...parsed,
-              target_count: Number(parsed.target_count) || 10000,
-              category: ['syifa', 'ramadan', 'tolak-bala', 'harian'].includes(parsed.category)
-                ? parsed.category
-                : 'syifa'
-            }
-          });
-        }
-      } catch (geminiError) {
-        console.warn('Gemini API call failed, using verified Islamic knowledge fallback:', geminiError);
-      }
-    }
-
+    // 3. Fallback ke SatuZikir Verified Knowledge Engine
     const fallback = generateFallbackCampaign(prompt);
     return NextResponse.json({
       success: true,
       source: 'knowledge-engine',
       campaign: fallback,
-      note: 'Dihasilkan dari database zikir & fiqih SatuZikir.'
+      note: 'Dihasilkan dari database zikir & fiqih SatuZikir.',
     });
   } catch (error) {
     console.error('Error generating campaign:', error);
