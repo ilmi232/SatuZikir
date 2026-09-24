@@ -12,25 +12,21 @@ cp .env.example .env.local   # isi variabel sesuai kebutuhan
 npm run dev
 ```
 
-Tanpa `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY`, aplikasi berjalan dalam **mode demo**: data hanya tersimpan di localStorage browser, dan `/admin/login` menyediakan tombol "Masuk Mode Demo". Endpoint AI hanya aktif di mode demo saat development.
+Tanpa `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY`, aplikasi berjalan dalam **mode demo**: data hanya tersimpan di localStorage browser. Login admin tetap memakai `ADMIN_PIN` dan `ADMIN_SESSION_SECRET` dari `.env.local`.
 
 ## Setup Supabase (production)
 
 1. Jalankan seluruh isi [`supabase_schema.sql`](supabase_schema.sql) di Supabase SQL Editor (idempotent, aman dijalankan ulang).
-2. Buat user admin di **Authentication → Users → Add user** (email + kata sandi).
-3. Daftarkan user itu sebagai admin:
-   ```sql
-   INSERT INTO admins (user_id)
-   SELECT id FROM auth.users WHERE email = 'email-admin@contoh.com';
-   ```
-4. Isi `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, dan `NEXT_PUBLIC_SITE_URL` di environment deployment.
+2. Isi environment variables di Vercel (tipe **Secret** untuk yang rahasia):
+   - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`
+   - `ADMIN_PIN` (6 digit), `ADMIN_SESSION_SECRET` (≥32 karakter acak), `SUPABASE_SERVICE_ROLE_KEY`
+   - `GEMINI_API_KEY` (opsional: `GEMINI_MODELS`, `NVIDIA_API_KEY`)
 
 ## Model keamanan
 
-- **Campaign**: publik hanya bisa membaca (draft tersembunyi). Tulis/hapus hanya untuk user di tabel `admins` (RLS `is_admin()`).
-- **Hitungan tasbih**: hanya lewat RPC `increment_counter` (1–100 ketukan per panggilan, campaign draft ditolak).
-- **Doa**: publik boleh menambah (3–500 karakter, anti-duplikat, maks. 20/menit per campaign) dan meng-aamiin-kan lewat RPC `increment_amin`. Hanya admin yang boleh menghapus (moderasi di `/admin`).
-- **AI** (`/api/ai/generate-campaign`): wajib token sesi admin; API key hanya dibaca dari env server (`GEMINI_API_KEY`, `NVIDIA_API_KEY`), tidak pernah dari request.
+- **Admin**: login dengan PIN 6 digit yang diperiksa di server; sukses menghasilkan cookie sesi httpOnly bertanda tangan HMAC (berlaku 12 jam). Salah PIN 5x dari satu IP → jeda 15 menit; 20x salah dari semua IP dalam 1 jam → login dikunci 1 jam (tercatat di tabel `admin_login_failures`).
+- **Operasi admin** (buat/edit/hapus campaign, koreksi hitungan, hapus doa, AI, skema SQL) hanya lewat route `/api/admin/*` dan `/api/ai/*` yang memeriksa sesi; server memakai service role key.
+- **Publik (anon key)**: hanya membaca campaign non-draft, menambah hitungan lewat RPC `increment_counter` (1–100 per panggilan), menitip doa (3–500 karakter, anti-duplikat, maks. 20/menit per campaign), dan meng-aamiin-kan lewat RPC `increment_amin`.
 
 ## Scripts
 

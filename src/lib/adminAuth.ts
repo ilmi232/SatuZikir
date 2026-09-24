@@ -2,69 +2,47 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase, isSupabaseConfigured } from './supabase';
 
-// Mode demo = Supabase belum dikonfigurasi; semua data hanya ada di localStorage
-// browser ini, jadi "login" demo tidak membuka akses ke data siapa pun.
-export const isAdminDemoMode = !isSupabaseConfigured;
+// Login admin memakai PIN 6 digit yang diperiksa di server. Server mengirim
+// cookie sesi httpOnly, jadi browser tidak pernah menyimpan PIN atau token.
 
-const DEMO_SESSION_KEY = 'satuzikir_demo_admin';
+/** Panggil route /api/admin/* dan lempar Error berisi pesan dari server. */
+export async function adminApi<T = unknown>(path: string, init: RequestInit = {}): Promise<T> {
+  const headers = new Headers(init.headers);
+  if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
 
-async function hasAdminRole(): Promise<boolean> {
-  if (!supabase) return false;
-  const { data, error } = await supabase.rpc('is_admin');
-  return !error && data === true;
+  const res = await fetch(path, { ...init, headers, credentials: 'same-origin' });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(data.error || `Permintaan gagal (HTTP ${res.status})`) as Error & {
+      retryAfterSec?: number;
+    };
+    err.retryAfterSec = data.retryAfterSec;
+    throw err;
+  }
+  return data as T;
 }
 
-export async function signInAdmin(email: string, password: string): Promise<void> {
-  if (!supabase) throw new Error('Supabase belum dikonfigurasi.');
-
-  const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-  if (error) throw new Error('Email atau kata sandi salah.');
-
-  if (!(await hasAdminRole())) {
-    await supabase.auth.signOut();
-    throw new Error('Akun ini belum terdaftar sebagai admin SatuZikir.');
-  }
+export async function signInAdmin(pin: string): Promise<void> {
+  await adminApi('/api/admin/login', { method: 'POST', body: JSON.stringify({ pin }) });
 }
 
-export function signInDemoAdmin() {
-  try {
-    sessionStorage.setItem(DEMO_SESSION_KEY, 'true');
-  } catch {
-    // ignore
-  }
-}
-
-export async function signOutAdmin() {
-  try {
-    sessionStorage.removeItem(DEMO_SESSION_KEY);
-  } catch {
-    // ignore
-  }
-  await supabase?.auth.signOut();
+export async function signOutAdmin(): Promise<void> {
+  await adminApi('/api/admin/logout', { method: 'POST' }).catch(() => {});
 }
 
 export async function isAdminSignedIn(): Promise<boolean> {
-  if (isAdminDemoMode) {
-    try {
-      return sessionStorage.getItem(DEMO_SESSION_KEY) === 'true';
-    } catch {
-      return false;
-    }
+  try {
+    const { admin } = await adminApi<{ admin: boolean }>('/api/admin/session');
+    return admin;
+  } catch {
+    return false;
   }
-  const { data } = await supabase!.auth.getSession();
-  return Boolean(data.session) && (await hasAdminRole());
 }
 
-/** fetch() yang menyertakan token sesi admin untuk route handler yang dilindungi. */
-export async function adminFetch(input: string, init: RequestInit = {}): Promise<Response> {
-  const headers = new Headers(init.headers);
-  if (supabase) {
-    const { data } = await supabase.auth.getSession();
-    if (data.session) headers.set('Authorization', `Bearer ${data.session.access_token}`);
-  }
-  return fetch(input, { ...init, headers });
+/** fetch() untuk route admin yang tidak mengembalikan JSON (mis. skema SQL). */
+export function adminFetch(input: string, init: RequestInit = {}): Promise<Response> {
+  return fetch(input, { ...init, credentials: 'same-origin' });
 }
 
 /** Redirect ke /admin/login jika belum login sebagai admin. */

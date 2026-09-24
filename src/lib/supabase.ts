@@ -5,9 +5,10 @@ export { isSupabaseConfigured };
 
 export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey, {
+      // Browser selalu anonim; admin login lewat PIN di server
       auth: {
-        persistSession: true,
-        autoRefreshToken: true,
+        persistSession: false,
+        autoRefreshToken: false,
       },
       realtime: {
         params: {

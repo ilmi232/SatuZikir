@@ -1,6 +1,7 @@
 import { Campaign, Prayer } from '@/types';
 import { supabase, isSupabaseConfigured } from './supabase';
 import { supabaseAnonKey, supabaseUrl } from './supabaseConfig';
+import { adminApi } from './adminAuth';
 
 // Mode Supabase: semua operasi ke server, error diteruskan ke pemanggil agar UI
 // bisa memberi tahu pengguna. Mode lokal (Supabase belum dikonfigurasi): data
@@ -87,7 +88,11 @@ export const DataService = {
    */
   async getCampaigns({ includeDrafts = false }: { includeDrafts?: boolean } = {}): Promise<Campaign[]> {
     let list: Campaign[];
-    if (isSupabaseConfigured && supabase) {
+    if (isSupabaseConfigured && includeDrafts) {
+      // Draft tidak bisa dibaca publik (RLS), jadi admin mengambil lewat server
+      const { campaigns } = await adminApi<{ campaigns: Campaign[] }>('/api/admin/campaigns');
+      return campaigns;
+    } else if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
         .from('campaigns')
         .select('*')
@@ -414,16 +419,15 @@ export const DataService = {
    * Hapus doa (moderasi admin)
    */
   async deletePrayer(prayerId: string): Promise<void> {
-    if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase.from('prayers').delete().eq('id', prayerId);
-      if (error) throw new Error(error.message);
+    if (isSupabaseConfigured) {
+      await adminApi(`/api/admin/prayers/${encodeURIComponent(prayerId)}`, { method: 'DELETE' });
       return;
     }
     saveLocalPrayers(getLocalPrayers().filter((p) => p.id !== prayerId));
   },
 
   /**
-   * Save Campaign (Create or Update).
+   * Save Campaign (Create or Update) — lewat route admin di server.
    * Update TIDAK menyentuh current_count agar ketukan jamaah yang masuk selama
    * admin mengedit tidak tertimpa; koreksi hitungan pakai setCampaignCount().
    */
@@ -439,32 +443,27 @@ export const DataService = {
       target_count: campaign.target_count,
       status: campaign.status,
       image_url: campaign.image_url,
-      updated_at: new Date().toISOString(),
     };
 
-    if (isSupabaseConfigured && supabase) {
+    if (isSupabaseConfigured) {
       const existingId = campaign.id && isValidUUID(campaign.id) ? campaign.id : null;
-
-      const { data, error } = existingId
-        ? await supabase.from('campaigns').update(fields).eq('id', existingId).select().single()
-        : await supabase
-            .from('campaigns')
-            .insert({ ...fields, current_count: campaign.current_count || 0, status: campaign.status || 'active' })
-            .select()
-            .single();
-
-      if (error) {
-        if (error.code === '23505') throw new Error('Slug campaign sudah dipakai. Ubah judulnya sedikit.');
-        throw new Error(error.message);
-      }
-      return data as Campaign;
+      const { campaign: saved } = existingId
+        ? await adminApi<{ campaign: Campaign }>(`/api/admin/campaigns/${existingId}`, {
+            method: 'PATCH',
+            body: JSON.stringify(fields),
+          })
+        : await adminApi<{ campaign: Campaign }>('/api/admin/campaigns', {
+            method: 'POST',
+            body: JSON.stringify({ ...fields, current_count: campaign.current_count || 0 }),
+          });
+      return saved;
     }
 
     // Local Storage mode
     const list = getLocalCampaigns();
     const idx = campaign.id ? list.findIndex((c) => c.id === campaign.id) : -1;
     if (idx !== -1) {
-      const updated = { ...list[idx], ...fields };
+      const updated = { ...list[idx], ...fields, updated_at: new Date().toISOString() };
       list[idx] = updated;
       saveLocalCampaigns(list);
       return updated;
@@ -490,12 +489,11 @@ export const DataService = {
   async setCampaignCount(campaign: Campaign, count: number): Promise<void> {
     const status: Campaign['status'] = count >= campaign.target_count ? 'completed' : campaign.status;
 
-    if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase
-        .from('campaigns')
-        .update({ current_count: count, status, updated_at: new Date().toISOString() })
-        .eq('id', campaign.id);
-      if (error) throw new Error(error.message);
+    if (isSupabaseConfigured) {
+      await adminApi(`/api/admin/campaigns/${campaign.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ current_count: count, status }),
+      });
       return;
     }
 
@@ -511,13 +509,8 @@ export const DataService = {
    * Delete Campaign
    */
   async deleteCampaign(id: string): Promise<void> {
-    if (isSupabaseConfigured && supabase) {
-      const { error, count } = await supabase
-        .from('campaigns')
-        .delete({ count: 'exact' })
-        .eq(isValidUUID(id) ? 'id' : 'slug', id);
-      if (error) throw new Error(error.message);
-      if (count === 0) throw new Error('Campaign tidak terhapus (tidak ditemukan atau tidak ada izin).');
+    if (isSupabaseConfigured) {
+      await adminApi(`/api/admin/campaigns/${encodeURIComponent(id)}`, { method: 'DELETE' });
       return;
     }
 
@@ -525,38 +518,17 @@ export const DataService = {
   },
 
   /**
-   * Migrate and upload all current local storage campaigns to Supabase
+   * Upload campaign dari localStorage (mode demo) ke Supabase lewat server
    */
   async migrateLocalToSupabase(): Promise<{ success: boolean; migrated: number; error?: string }> {
-    if (!isSupabaseConfigured || !supabase) {
+    if (!isSupabaseConfigured) {
       return { success: false, migrated: 0, error: 'Koneksi Supabase belum aktif di .env.local' };
     }
 
-    const localList = getLocalCampaigns();
-    let count = 0;
-    let lastError: string | undefined;
-
-    for (const c of localList) {
-      const { error } = await supabase.from('campaigns').upsert(
-        {
-          title: c.title,
-          slug: c.slug,
-          category: c.category || 'syifa',
-          description: c.description,
-          arabic_text: c.arabic_text,
-          latin_text: c.latin_text,
-          translation_text: c.translation_text,
-          target_count: c.target_count,
-          current_count: c.current_count,
-          status: c.status,
-          created_at: c.created_at,
-        },
-        { onConflict: 'slug' }
-      );
-      if (error) lastError = error.message;
-      else count++;
-    }
-
-    return { success: !lastError, migrated: count, error: lastError };
+    const { migrated, errors } = await adminApi<{ migrated: number; errors: string[] }>(
+      '/api/admin/campaigns/import',
+      { method: 'POST', body: JSON.stringify({ campaigns: getLocalCampaigns() }) }
+    );
+    return { success: errors.length === 0, migrated, error: errors[0] };
   },
 };

@@ -1,12 +1,11 @@
 -- =======================================================
 -- SKEMA DATABASE SATUZIKIR (SUPABASE POSTGRESQL PRODUCTION)
--- Version: 3.0 (Admin Auth + RLS Ketat + Validasi RPC, Idempotent)
+-- Version: 3.1 (Admin PIN via Server + RLS Ketat + Validasi RPC, Idempotent)
 --
--- Setelah menjalankan skrip ini:
--- 1. Buat user admin di Dashboard Supabase -> Authentication -> Users -> Add user
--- 2. Daftarkan user tersebut sebagai admin:
---      INSERT INTO admins (user_id)
---      SELECT id FROM auth.users WHERE email = 'email-admin@contoh.com';
+-- Admin login memakai PIN yang diperiksa di server (env ADMIN_PIN). Semua
+-- penulisan data admin dilakukan server dengan SUPABASE_SERVICE_ROLE_KEY,
+-- yang melewati RLS. Publik (anon key) hanya bisa membaca, menitip doa,
+-- dan menambah hitungan lewat RPC.
 -- =======================================================
 
 -- 1. Enable UUID & Cryptographic Extensions
@@ -55,16 +54,15 @@ ALTER TABLE prayers DROP CONSTRAINT IF EXISTS prayers_name_length;
 ALTER TABLE prayers ADD CONSTRAINT prayers_name_length
     CHECK (name IS NULL OR char_length(name) <= 60) NOT VALID;
 
--- 4. Tabel Admins (user Supabase Auth yang boleh mengelola campaign)
-CREATE TABLE IF NOT EXISTS admins (
-    user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+-- 4. Catatan login admin yang gagal (untuk jeda/kunci setelah salah PIN).
+-- Tanpa policy RLS: hanya server (service role) yang bisa membaca/menulis.
+CREATE TABLE IF NOT EXISTS admin_login_failures (
+    id BIGSERIAL PRIMARY KEY,
+    ip TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
 );
-
-CREATE OR REPLACE FUNCTION is_admin()
-RETURNS BOOLEAN AS $$
-    SELECT EXISTS (SELECT 1 FROM public.admins WHERE user_id = auth.uid());
-$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public;
+CREATE INDEX IF NOT EXISTS idx_admin_login_failures_created ON admin_login_failures(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_admin_login_failures_ip ON admin_login_failures(ip, created_at DESC);
 
 -- 5. Indeks Performa
 CREATE INDEX IF NOT EXISTS idx_campaigns_slug ON campaigns(slug);
@@ -177,7 +175,7 @@ END $$;
 -- 10. Row Level Security (RLS) & Kebijakan Akses
 ALTER TABLE campaigns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE prayers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_login_failures ENABLE ROW LEVEL SECURITY;
 
 -- Reset policies agar eksekusi script selalu idempotent (termasuk policy versi lama)
 DROP POLICY IF EXISTS "Public can view campaigns" ON campaigns;
@@ -188,19 +186,16 @@ DROP POLICY IF EXISTS "Public can view prayers" ON prayers;
 DROP POLICY IF EXISTS "Public can insert prayers" ON prayers;
 DROP POLICY IF EXISTS "Allow public to update prayers" ON prayers;
 DROP POLICY IF EXISTS "Admins delete prayers" ON prayers;
-DROP POLICY IF EXISTS "Admins can read own admin row" ON admins;
 
--- Campaigns: publik hanya melihat campaign yang sudah dibuka (bukan draft)
+-- Bersihkan mekanisme admin berbasis Supabase Auth dari versi 3.0
+DROP TABLE IF EXISTS admins CASCADE;
+DROP FUNCTION IF EXISTS is_admin();
+
+-- Campaigns: publik hanya melihat campaign yang sudah dibuka (bukan draft).
+-- Tidak ada policy tulis: create/update/delete hanya lewat server (service role).
 CREATE POLICY "Public can view published campaigns"
 ON campaigns FOR SELECT
-USING (status <> 'draft' OR is_admin());
-
--- Campaigns: hanya admin yang boleh membuat, mengubah, dan menghapus
-CREATE POLICY "Admins manage campaigns"
-ON campaigns FOR ALL
-TO authenticated
-USING (is_admin())
-WITH CHECK (is_admin());
+USING (status <> 'draft');
 
 -- Prayers: publik bisa melihat doa
 CREATE POLICY "Public can view prayers"
@@ -213,22 +208,11 @@ ON prayers FOR INSERT
 TO anon, authenticated
 WITH CHECK (true);
 
--- Prayers: tidak ada UPDATE publik — amin hanya lewat increment_amin().
--- Admin boleh menghapus doa yang tidak pantas (moderasi).
-CREATE POLICY "Admins delete prayers"
-ON prayers FOR DELETE
-TO authenticated
-USING (is_admin());
-
--- Admins: user hanya bisa membaca baris miliknya sendiri (untuk cek status admin)
-CREATE POLICY "Admins can read own admin row"
-ON admins FOR SELECT
-TO authenticated
-USING (user_id = auth.uid());
+-- Prayers: tidak ada UPDATE/DELETE publik — amin hanya lewat increment_amin(),
+-- moderasi (hapus doa) hanya lewat server (service role).
 
 -- Hak eksekusi Stored Procedure
 REVOKE EXECUTE ON FUNCTION increment_counter(UUID, INT) FROM PUBLIC;
 REVOKE EXECUTE ON FUNCTION increment_amin(UUID) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION increment_counter(UUID, INT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION increment_amin(UUID) TO anon, authenticated;
-GRANT EXECUTE ON FUNCTION is_admin() TO anon, authenticated;
