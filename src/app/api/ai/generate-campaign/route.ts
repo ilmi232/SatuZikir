@@ -90,7 +90,7 @@ async function callNvidiaNim(
 
 // Model Gemini dicoba berurutan; model flash sering 503 "high demand" bergantian,
 // jadi daftar dibuat cukup panjang. Bisa ditimpa lewat env GEMINI_MODELS (dipisah koma).
-const GEMINI_MODELS = (process.env.GEMINI_MODELS || 'gemini-3.8-flash,gemini-3.6-flash,gemini-3.7-flash,gemini-3.5-flash,gemini-flash-latest')
+const GEMINI_MODELS = (process.env.GEMINI_MODELS || 'gemini-3.6-flash,gemini-3.8-flash,gemini-3.7-flash,gemini-3.5-flash,gemini-flash-latest')
   .split(',')
   .map((m) => m.trim())
   .filter(Boolean);
