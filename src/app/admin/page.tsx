@@ -7,6 +7,7 @@ import { DataService } from '@/lib/dataService';
 import { adminFetch, signOutAdmin, useAdminGuard } from '@/lib/adminAuth';
 import { checkSupabaseHealth, isSupabaseConfigured, SupabaseHealthResult } from '@/lib/supabase';
 import { loadSupabaseSchemaSql } from '@/lib/supabaseSql';
+import { compressImageForUpload } from '@/lib/imageCompress';
 import Link from 'next/link';
 
 /** Slug dari judul; judul tanpa huruf latin (mis. Arab) memakai slug berbasis waktu. */
@@ -61,14 +62,17 @@ export default function AdminHubPage() {
   const [newCountInput, setNewCountInput] = useState<number>(0);
   const [campaignFilter, setCampaignFilter] = useState<'semua' | 'active' | 'completed'>('semua');
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = ''; // agar foto yang sama bisa dipilih ulang
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setAiImage(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    setAiError(null);
+    try {
+      setAiImage(await compressImageForUpload(file));
+    } catch (err) {
+      setAiImage(null);
+      setAiError((err as Error).message);
+    }
   };
 
   const handleGenerateWithAi = async (promptToUse?: string) => {
@@ -560,7 +564,7 @@ export default function AdminHubPage() {
           <button
             type="button"
             onClick={() => handleGenerateWithAi()}
-            disabled={isGeneratingAi || !aiPrompt.trim()}
+            disabled={isGeneratingAi || (!aiPrompt.trim() && !aiImage)}
             className="w-full h-11 rounded-2xl bg-[#003527] hover:bg-[#064e3b] dark:bg-[#4edea3] dark:hover:bg-[#31c98f] text-white dark:text-[#002117] text-xs font-bold shadow-[0_4px_16px_rgba(0,53,39,0.18)] dark:shadow-[0_4px_16px_rgba(78,222,163,0.2)] flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98] cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {isGeneratingAi ? (
