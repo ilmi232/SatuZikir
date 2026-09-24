@@ -7,7 +7,7 @@ export default function MobileNav() {
   const pathname = usePathname();
 
   const isKatalog = pathname === '/';
-  const isTasbih = pathname.startsWith('/campaign');
+  const isTasbih = pathname.startsWith('/campaign') || pathname === '/tasbih';
   const isRiwayat = pathname === '/riwayat';
   const isAdmin = pathname.startsWith('/admin');
 
@@ -34,7 +34,7 @@ export default function MobileNav() {
 
         {/* Tab 2: Tasbih Live */}
         <Link
-          href="/campaign/shalawat-nariyah-4444"
+          href="/tasbih"
           className={`flex flex-col items-center justify-center min-w-[64px] min-h-[44px] gap-0.5 transition-colors cursor-pointer ${
             isTasbih
               ? 'text-[#003527] dark:text-[#4edea3] font-bold'

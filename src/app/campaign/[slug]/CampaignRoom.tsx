@@ -6,6 +6,9 @@ import { DataService } from '@/lib/dataService';
 import TasbihScreen from '@/components/TasbihScreen';
 import Link from 'next/link';
 
+/** Slug campaign terakhir yang dibuka, dipakai tab "Tasbih" di navigasi bawah. */
+export const LAST_CAMPAIGN_KEY = 'satuzikir_last_campaign';
+
 export default function CampaignRoom({ slug }: { slug: string }) {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -13,7 +16,16 @@ export default function CampaignRoom({ slug }: { slug: string }) {
 
   useEffect(() => {
     DataService.getCampaignBySlug(slug)
-      .then(setCampaign)
+      .then((found) => {
+        setCampaign(found);
+        if (found) {
+          try {
+            localStorage.setItem(LAST_CAMPAIGN_KEY, found.slug);
+          } catch {
+            // ignore
+          }
+        }
+      })
       .catch((err) => setLoadError((err as Error).message))
       .finally(() => setLoading(false));
   }, [slug]);
