@@ -35,7 +35,8 @@ async function callNvidiaNim(
   prompt: string,
   image: string | undefined,
   apiKey: string,
-  modelName: string
+  modelName: string,
+  failures: string[]
 ): Promise<{ campaign: GeneratedCampaign; modelUsed: string } | null> {
   const promptText = `Prompt Admin: "${prompt}"\n\nSusun ke dalam format JSON yang diminta.`;
   const userContent = image
@@ -69,6 +70,7 @@ async function callNvidiaNim(
       });
 
       if (!response.ok) {
+        failures.push(`${model}: ${response.status}`);
         console.warn(`NVIDIA NIM (${model}) HTTP ${response.status}:`, await response.text());
         continue;
       }
@@ -76,7 +78,9 @@ async function callNvidiaNim(
       const data = await response.json();
       const campaign = parseModelOutput(data?.choices?.[0]?.message?.content || '');
       if (campaign) return { campaign, modelUsed: model };
+      failures.push(`${model}: jawaban tidak lengkap`);
     } catch (err) {
+      failures.push(describeAiError(model, err));
       console.warn(`Error calling NVIDIA NIM (${model}):`, err);
     }
   }
@@ -84,14 +88,30 @@ async function callNvidiaNim(
   return null;
 }
 
+// Model Gemini dicoba berurutan; model flash sering 503 "high demand" bergantian,
+// jadi daftar dibuat cukup panjang. Bisa ditimpa lewat env GEMINI_MODELS (dipisah koma).
+const GEMINI_MODELS = (process.env.GEMINI_MODELS || 'gemini-3.8-flash,gemini-3.6-flash,gemini-3.7-flash,gemini-3.5-flash,gemini-flash-latest')
+  .split(',')
+  .map((m) => m.trim())
+  .filter(Boolean);
+
+/** Ringkas pesan error provider AI, mis. "gemini-3.6-flash: 503 UNAVAILABLE". */
+function describeAiError(model: string, err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err);
+  const code = message.match(/"code":\s*(\d{3})/)?.[1];
+  const status = message.match(/"status":\s*"([A-Z_]+)"/)?.[1];
+  return `${model}: ${code ? `${code} ${status ?? ''}`.trim() : message.slice(0, 80)}`;
+}
+
 async function callGemini(
   prompt: string,
   image: string | undefined,
-  apiKey: string
+  apiKey: string,
+  failures: string[]
 ): Promise<GeneratedCampaign | null> {
   const parts: ({ text: string } | { inlineData: { mimeType: string; data: string } })[] = [
     {
-      text: `${SYSTEM_INSTRUCTION}\n\nPrompt Admin: "${prompt}"\n\n[Jika ada gambar, ekstrak teks Arab/Latin dari gambar, lengkapi yang kurang, dan hitung target yang diminta.]\n\nJSON Output:`,
+      text: `Prompt Admin: "${prompt}"\n\n[Jika ada gambar, ekstrak teks Arab/Latin dari gambar, lengkapi yang kurang, dan hitung target yang diminta.]`,
     },
   ];
 
@@ -102,15 +122,24 @@ async function callGemini(
     }
   }
 
-  const ai = new GoogleGenAI({ apiKey });
-  const models = ['gemini-3.5-flash', 'gemini-3.6-flash'];
+  const ai = new GoogleGenAI({ apiKey, httpOptions: { timeout: 30_000 } });
 
-  for (const model of models) {
+  for (const model of GEMINI_MODELS) {
     try {
-      const response = await ai.models.generateContent({ model, contents: parts });
+      const response = await ai.models.generateContent({
+        model,
+        contents: parts,
+        config: {
+          systemInstruction: SYSTEM_INSTRUCTION,
+          responseMimeType: 'application/json',
+          temperature: 0.3,
+        },
+      });
       const campaign = parseModelOutput(response.text || '');
       if (campaign) return campaign;
+      failures.push(`${model}: jawaban tidak lengkap`);
     } catch (err) {
+      failures.push(describeAiError(model, err));
       console.warn(`Gemini (${model}) attempt failed:`, err);
     }
   }
@@ -146,10 +175,12 @@ export async function POST(req: Request) {
       );
     }
 
+    const failures: string[] = [];
+
     // 1. Google Gemini
     const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '';
     if (geminiKey) {
-      const geminiResult = await callGemini(prompt, image, geminiKey);
+      const geminiResult = await callGemini(prompt, image, geminiKey, failures);
       if (geminiResult) {
         return NextResponse.json({
           success: true,
@@ -167,7 +198,8 @@ export async function POST(req: Request) {
         prompt,
         image,
         nvidiaKey,
-        process.env.NVIDIA_MODEL || 'z-ai/glm-5.3'
+        process.env.NVIDIA_MODEL || 'z-ai/glm-5.3',
+        failures
       );
       if (nimResult) {
         return NextResponse.json({
@@ -186,6 +218,8 @@ export async function POST(req: Request) {
       source: 'knowledge-engine',
       campaign: generateFallbackCampaign(prompt),
       note: 'Dihasilkan dari database zikir & fiqih SatuZikir.',
+      // Alasan AI tidak dipakai, agar admin tahu hasil ini bukan dari AI
+      aiFailures: geminiKey || nvidiaKey ? failures : ['API key AI belum dikonfigurasi di server'],
     });
   } catch (error) {
     console.error('Error generating campaign:', error);

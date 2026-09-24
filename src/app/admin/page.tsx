@@ -113,6 +113,10 @@ export default function AdminHubPage() {
       } else {
         setAiSource('SatuZikir Knowledge Engine');
         setAiSuccessMsg('Disusun oleh Database Syiar SatuZikir (Mode Cerdas Cadangan).');
+        const failures: string[] = data.aiFailures || [];
+        if (failures.length > 0) {
+          setAiError(`AI tidak tersedia, memakai mode cadangan (${failures.join('; ')}). Coba lagi beberapa saat.`);
+        }
       }
 
       // Scroll smoothly to the form
