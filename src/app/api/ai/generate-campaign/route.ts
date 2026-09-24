@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, ThinkingLevel } from '@google/genai';
 import type { CampaignCategory, GeneratedCampaign } from '@/types';
 import { generateFallbackCampaign } from '@/lib/zikirKnowledge';
 import { requireAdmin } from '@/lib/serverAuth';
@@ -133,6 +133,8 @@ async function callGemini(
           systemInstruction: SYSTEM_INSTRUCTION,
           responseMimeType: 'application/json',
           temperature: 0.3,
+          // Menyusun JSON tidak butuh penalaran panjang; LOW memangkas latensi ~10s -> ~4s
+          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         },
       });
       const campaign = parseModelOutput(response.text || '');
