@@ -1,5 +1,14 @@
 import { Campaign, Prayer } from '@/types';
 import { supabase, isSupabaseConfigured } from './supabase';
+import { supabaseAnonKey, supabaseUrl } from './supabaseConfig';
+
+// Mode Supabase: semua operasi ke server, error diteruskan ke pemanggil agar UI
+// bisa memberi tahu pengguna. Mode lokal (Supabase belum dikonfigurasi): data
+// disimpan di localStorage browser ini saja, untuk demo/pengembangan.
+
+export const PRAYER_TEXT_MIN = 3;
+export const PRAYER_TEXT_MAX = 500;
+export const PRAYER_NAME_MAX = 60;
 
 // Helper to check valid UUID
 function isValidUUID(str: string): boolean {
@@ -16,48 +25,34 @@ if (typeof window !== 'undefined') {
   }
 }
 
-function getLocalCampaigns(): Campaign[] {
+function readLocal<T>(key: string): T[] {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = localStorage.getItem('satuzikir_campaigns_v3');
-    if (raw) {
-      return JSON.parse(raw);
-    }
-    return [];
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
   }
 }
 
-function saveLocalCampaigns(campaigns: Campaign[]) {
+function writeLocal<T>(key: string, items: T[]) {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem('satuzikir_campaigns_v3', JSON.stringify(campaigns));
+    localStorage.setItem(key, JSON.stringify(items));
   } catch {
     // Ignore storage quota
   }
 }
 
-function getLocalPrayers(): Prayer[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem('satuzikir_prayers_v3');
-    if (raw) {
-      return JSON.parse(raw);
-    }
-    return [];
-  } catch {
-    return [];
-  }
-}
+const getLocalCampaigns = () => readLocal<Campaign>('satuzikir_campaigns_v3');
+const saveLocalCampaigns = (list: Campaign[]) => writeLocal('satuzikir_campaigns_v3', list);
+const getLocalPrayers = () => readLocal<Prayer>('satuzikir_prayers_v3');
+const saveLocalPrayers = (list: Prayer[]) => writeLocal('satuzikir_prayers_v3', list);
 
-function saveLocalPrayers(prayers: Prayer[]) {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem('satuzikir_prayers_v3', JSON.stringify(prayers));
-  } catch {
-    // Ignore storage quota
-  }
+const AMINED_KEY = 'satuzikir_amined_prayers';
+
+function newId(prefix: string): string {
+  return typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${prefix}_${Date.now()}`;
 }
 
 let broadcastChannel: BroadcastChannel | null = null;
@@ -69,122 +64,131 @@ if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
   }
 }
 
+/** Resolve slug atau UUID campaign ke UUID di Supabase. */
+async function resolveCampaignUuid(idOrSlug: string): Promise<string | null> {
+  if (isValidUUID(idOrSlug)) return idOrSlug;
+  const { data, error } = await supabase!.from('campaigns').select('id').eq('slug', idOrSlug).maybeSingle();
+  if (error) throw new Error(error.message);
+  return data?.id ?? null;
+}
+
+function validatePrayer(name: string, prayerText: string) {
+  const text = prayerText.trim();
+  if (text.length < PRAYER_TEXT_MIN) throw new Error('Isi doa terlalu pendek.');
+  if (text.length > PRAYER_TEXT_MAX) throw new Error(`Isi doa maksimal ${PRAYER_TEXT_MAX} karakter.`);
+  if (name.trim().length > PRAYER_NAME_MAX) throw new Error(`Nama maksimal ${PRAYER_NAME_MAX} karakter.`);
+}
+
+type CampaignInput = Omit<Campaign, 'id' | 'created_at'> & { id?: string };
+
 export const DataService = {
   /**
-   * Get all campaigns (Supabase Live with fallback to Local Storage)
+   * Get campaigns. Draft hanya ikut jika includeDrafts (halaman admin).
    */
-  async getCampaigns(): Promise<Campaign[]> {
+  async getCampaigns({ includeDrafts = false }: { includeDrafts?: boolean } = {}): Promise<Campaign[]> {
+    let list: Campaign[];
     if (isSupabaseConfigured && supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('campaigns')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (!error && data) {
-          saveLocalCampaigns(data as Campaign[]);
-          return data as Campaign[];
-        }
-      } catch (err) {
-        console.warn('Supabase getCampaigns failed, falling back to local storage', err);
-      }
+      const { data, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw new Error(error.message);
+      list = data as Campaign[];
+    } else {
+      list = getLocalCampaigns();
     }
-    return getLocalCampaigns();
+    return includeDrafts ? list : list.filter((c) => c.status !== 'draft');
   },
 
   /**
-   * Get single campaign by slug or UUID
+   * Get single campaign by slug or UUID. Null jika tidak ada.
    */
-  async getCampaignBySlug(slug: string): Promise<Campaign | null> {
+  async getCampaignBySlug(
+    slug: string,
+    { includeDrafts = false }: { includeDrafts?: boolean } = {}
+  ): Promise<Campaign | null> {
+    let campaign: Campaign | null;
     if (isSupabaseConfigured && supabase) {
-      try {
-        const isUuid = isValidUUID(slug);
-        let query = supabase.from('campaigns').select('*');
-        if (isUuid) {
-          query = query.eq('id', slug);
-        } else {
-          query = query.eq('slug', slug);
-        }
-
-        const { data, error } = await query.maybeSingle();
-        if (!error && data) {
-          return data as Campaign;
-        }
-      } catch (err) {
-        console.warn('Supabase getCampaignBySlug failed, falling back to local storage', err);
-      }
+      const query = supabase.from('campaigns').select('*');
+      const { data, error } = await (isValidUUID(slug) ? query.eq('id', slug) : query.eq('slug', slug)).maybeSingle();
+      if (error) throw new Error(error.message);
+      campaign = (data as Campaign) ?? null;
+    } else {
+      campaign = getLocalCampaigns().find((c) => c.slug === slug || c.id === slug) ?? null;
     }
-    const local = getLocalCampaigns();
-    return local.find((c) => c.slug === slug || c.id === slug) || local[0] || null;
+    if (campaign && campaign.status === 'draft' && !includeDrafts) return null;
+    return campaign;
   },
 
   /**
-   * Atomic increment counter (Anti-Race Condition via RPC)
+   * Atomic increment counter (RPC di Supabase). Mengembalikan total terbaru.
    */
   async incrementCounter(campaignId: string, amount: number): Promise<number> {
     if (amount <= 0) return 0;
 
     if (isSupabaseConfigured && supabase) {
-      try {
-        let targetUuid = campaignId;
-        if (!isValidUUID(campaignId)) {
-          // If a slug was passed, find its UUID
-          const { data: c } = await supabase
-            .from('campaigns')
-            .select('id')
-            .eq('slug', campaignId)
-            .maybeSingle();
-          if (c?.id) targetUuid = c.id;
-        }
+      const targetUuid = await resolveCampaignUuid(campaignId);
+      if (!targetUuid) throw new Error('Campaign tidak ditemukan.');
 
-        if (isValidUUID(targetUuid)) {
-          const { data, error } = await supabase.rpc('increment_counter', {
-            target_campaign_id: targetUuid,
-            amount,
-          });
-
-          if (!error && typeof data === 'number' && data > 0) {
-            // Also keep local storage aligned
-            const campaigns = getLocalCampaigns();
-            const index = campaigns.findIndex((c) => c.id === targetUuid || c.slug === campaignId);
-            if (index !== -1) {
-              campaigns[index].current_count = data;
-              saveLocalCampaigns(campaigns);
-            }
-            return data;
-          }
-        }
-      } catch (err) {
-        console.warn('Supabase RPC increment_counter fallback to local', err);
-      }
+      const { data, error } = await supabase.rpc('increment_counter', {
+        target_campaign_id: targetUuid,
+        amount,
+      });
+      if (error) throw new Error(error.message);
+      return Number(data);
     }
 
-    // Local Storage Fallback
+    // Local Storage mode
     const campaigns = getLocalCampaigns();
     const index = campaigns.findIndex((c) => c.id === campaignId || c.slug === campaignId);
-    if (index !== -1) {
-      const updated = {
-        ...campaigns[index],
-        current_count: Number(campaigns[index].current_count) + amount,
-        status:
-          Number(campaigns[index].current_count) + amount >= campaigns[index].target_count
-            ? ('completed' as const)
-            : campaigns[index].status,
-      };
-      campaigns[index] = updated;
-      saveLocalCampaigns(campaigns);
+    if (index === -1) return 0;
 
-      broadcastChannel?.postMessage({
-        type: 'COUNTER_INCREMENTED',
-        campaignId,
-        newCount: updated.current_count,
-        status: updated.status,
-      });
+    const newCount = Number(campaigns[index].current_count) + amount;
+    const updated: Campaign = {
+      ...campaigns[index],
+      current_count: newCount,
+      status: newCount >= campaigns[index].target_count ? 'completed' : campaigns[index].status,
+    };
+    campaigns[index] = updated;
+    saveLocalCampaigns(campaigns);
 
-      return updated.current_count;
+    broadcastChannel?.postMessage({
+      type: 'COUNTER_INCREMENTED',
+      campaignId,
+      newCount: updated.current_count,
+      status: updated.status,
+    });
+
+    return updated.current_count;
+  },
+
+  /**
+   * Kirim sisa ketukan saat halaman ditutup/disembunyikan. Memakai
+   * fetch keepalive agar request tetap terkirim walau tab sudah ditutup.
+   * campaignId harus UUID (campaign yang sudah dimuat).
+   */
+  flushCounterOnExit(campaignId: string, amount: number) {
+    if (amount <= 0) return;
+
+    if (!isSupabaseConfigured) {
+      void this.incrementCounter(campaignId, amount);
+      return;
     }
 
-    return 0;
+    try {
+      void fetch(`${supabaseUrl}/rest/v1/rpc/increment_counter`, {
+        method: 'POST',
+        keepalive: true,
+        headers: {
+          apikey: supabaseAnonKey,
+          Authorization: `Bearer ${supabaseAnonKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ target_campaign_id: campaignId, amount }),
+      }).catch(() => {});
+    } catch {
+      // ignore — halaman sedang ditutup
+    }
   },
 
   /**
@@ -223,10 +227,7 @@ export const DataService = {
     }
 
     const handleMessage = (event: MessageEvent) => {
-      if (
-        event.data?.type === 'COUNTER_INCREMENTED' &&
-        (event.data?.campaignId === campaignId || event.data?.slug === campaignId)
-      ) {
+      if (event.data?.type === 'COUNTER_INCREMENTED' && event.data?.campaignId === campaignId) {
         onUpdate({
           current_count: event.data.newCount,
           status: event.data.status,
@@ -245,141 +246,98 @@ export const DataService = {
   },
 
   /**
-   * Get prayers (Dinding Doa / Specific Campaign)
+   * Get prayers ('global' = semua doa untuk Dinding Doa)
    */
   async getPrayers(campaignId?: string): Promise<Prayer[]> {
+    const isGlobal = !campaignId || campaignId === 'global';
+
     if (isSupabaseConfigured && supabase) {
-      try {
-        let query = supabase
-          .from('prayers')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(50);
+      let query = supabase
+        .from('prayers')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
 
-        if (campaignId && campaignId !== 'global') {
-          if (isValidUUID(campaignId)) {
-            query = query.eq('campaign_id', campaignId);
-          } else {
-            const { data: c } = await supabase
-              .from('campaigns')
-              .select('id')
-              .eq('slug', campaignId)
-              .maybeSingle();
-            if (c?.id) {
-              query = query.eq('campaign_id', c.id);
-            }
-          }
-        }
-
-        const { data, error } = await query;
-        if (!error && data) {
-          return data as Prayer[];
-        }
-      } catch (err) {
-        console.warn('Supabase getPrayers fallback to local', err);
+      if (!isGlobal) {
+        const uuid = await resolveCampaignUuid(campaignId);
+        if (!uuid) return [];
+        query = query.eq('campaign_id', uuid);
       }
+
+      const { data, error } = await query;
+      if (error) throw new Error(error.message);
+      return data as Prayer[];
     }
 
     const prayers = getLocalPrayers();
-    if (campaignId && campaignId !== 'global') {
-      const filtered = prayers.filter((p) => p.campaign_id === campaignId);
-      return filtered.length > 0 ? filtered : prayers;
-    }
-    return prayers;
+    return isGlobal ? prayers : prayers.filter((p) => p.campaign_id === campaignId);
   },
 
   /**
    * Submit prayer
    */
   async submitPrayer(campaignId: string, name: string, prayerText: string): Promise<Prayer> {
+    validatePrayer(name, prayerText);
+    const isGlobal = !campaignId || campaignId === 'global';
+
+    if (isSupabaseConfigured && supabase) {
+      const targetUuid = isGlobal ? null : await resolveCampaignUuid(campaignId);
+      const { data, error } = await supabase
+        .from('prayers')
+        .insert({
+          campaign_id: targetUuid,
+          name: name.trim() || 'Hamba Allah',
+          prayer_text: prayerText.trim(),
+        })
+        .select()
+        .single();
+
+      if (error) throw new Error(error.message);
+      return data as Prayer;
+    }
+
     const newPrayer: Prayer = {
-      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'p_' + Date.now(),
+      id: newId('p'),
       campaign_id: campaignId,
       name: name.trim() || 'Hamba Allah',
       prayer_text: prayerText.trim(),
       amin_count: 1,
       created_at: new Date().toISOString(),
     };
-
-    if (isSupabaseConfigured && supabase) {
-      try {
-        let targetUuid: string | null = null;
-        if (campaignId && campaignId !== 'global') {
-          if (isValidUUID(campaignId)) {
-            targetUuid = campaignId;
-          } else {
-            const { data: c } = await supabase
-              .from('campaigns')
-              .select('id')
-              .eq('slug', campaignId)
-              .maybeSingle();
-            targetUuid = c?.id || null;
-          }
-        }
-
-        const { data, error } = await supabase
-          .from('prayers')
-          .insert({
-            campaign_id: targetUuid,
-            name: newPrayer.name,
-            prayer_text: newPrayer.prayer_text,
-            amin_count: 1,
-          })
-          .select()
-          .single();
-
-        if (!error && data) {
-          return data as Prayer;
-        }
-      } catch (err) {
-        console.warn('Supabase submitPrayer fallback to local', err);
-      }
-    }
-
     const prayers = getLocalPrayers();
     prayers.unshift(newPrayer);
     saveLocalPrayers(prayers);
 
-    broadcastChannel?.postMessage({
-      type: 'NEW_PRAYER',
-      prayer: newPrayer,
-    });
-
+    broadcastChannel?.postMessage({ type: 'NEW_PRAYER', prayer: newPrayer });
     return newPrayer;
   },
 
+  /** Apakah perangkat ini sudah meng-aamiin-kan doa tersebut. */
+  hasAmined(prayerId: string): boolean {
+    return readLocal<string>(AMINED_KEY).includes(prayerId);
+  },
+
   /**
-   * Increment Amin
+   * Increment Amin (sekali per doa per perangkat)
    */
-  async aminPrayer(prayerId: string): Promise<number> {
-    if (isSupabaseConfigured && supabase && isValidUUID(prayerId)) {
-      try {
-        const { data, error } = await supabase.rpc('increment_amin', {
-          prayer_id: prayerId,
-        });
-        if (!error && typeof data === 'number') {
-          return data;
-        }
-      } catch (err) {
-        console.warn('Supabase increment_amin fallback to local', err);
-      }
+  async aminPrayer(prayerId: string): Promise<number | null> {
+    if (this.hasAmined(prayerId)) return null;
+    writeLocal(AMINED_KEY, [...readLocal<string>(AMINED_KEY), prayerId].slice(-500));
+
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.rpc('increment_amin', { prayer_id: prayerId });
+      if (error) throw new Error(error.message);
+      return Number(data);
     }
 
     const prayers = getLocalPrayers();
     const item = prayers.find((p) => p.id === prayerId);
-    if (item) {
-      item.amin_count = (item.amin_count || 0) + 1;
-      saveLocalPrayers(prayers);
+    if (!item) return null;
 
-      broadcastChannel?.postMessage({
-        type: 'PRAYER_AMIN',
-        prayerId,
-        newAmin: item.amin_count,
-      });
-
-      return item.amin_count;
-    }
-    return 1;
+    item.amin_count = (item.amin_count || 0) + 1;
+    saveLocalPrayers(prayers);
+    broadcastChannel?.postMessage({ type: 'PRAYER_AMIN', prayerId, newAmin: item.amin_count });
+    return item.amin_count;
   },
 
   /**
@@ -390,9 +348,10 @@ export const DataService = {
     onNewPrayer: (prayer: Prayer) => void,
     onAminUpdate: (prayerId: string, newAmin: number) => void
   ) {
+    const isGlobal = !campaignId || campaignId === 'global';
+
     if (isSupabaseConfigured && supabase) {
-      const isUuid = isValidUUID(campaignId);
-      const filter = campaignId && campaignId !== 'global' && isUuid ? `campaign_id=eq.${campaignId}` : undefined;
+      const filter = !isGlobal && isValidUUID(campaignId) ? `campaign_id=eq.${campaignId}` : undefined;
 
       const channel = supabase
         .channel(`prayers-rt-${campaignId}`)
@@ -434,7 +393,8 @@ export const DataService = {
 
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'NEW_PRAYER') {
-        onNewPrayer(event.data.prayer);
+        const prayer = event.data.prayer as Prayer;
+        if (isGlobal || prayer.campaign_id === campaignId) onNewPrayer(prayer);
       } else if (event.data?.type === 'PRAYER_AMIN') {
         onAminUpdate(event.data.prayerId, event.data.newAmin);
       }
@@ -451,123 +411,71 @@ export const DataService = {
   },
 
   /**
-   * Save Campaign (Create or Update)
+   * Hapus doa (moderasi admin)
    */
-  async saveCampaign(campaign: Omit<Campaign, 'id' | 'created_at'> & { id?: string }): Promise<Campaign> {
+  async deletePrayer(prayerId: string): Promise<void> {
     if (isSupabaseConfigured && supabase) {
-      try {
-        const isUuid = campaign.id && isValidUUID(campaign.id);
-        const payload = {
-          title: campaign.title,
-          slug: campaign.slug,
-          category: campaign.category || 'syifa',
-          description: campaign.description,
-          arabic_text: campaign.arabic_text,
-          latin_text: campaign.latin_text,
-          translation_text: campaign.translation_text,
-          target_count: campaign.target_count,
-          current_count: campaign.current_count,
-          status: campaign.status,
-          image_url: campaign.image_url,
-          updated_at: new Date().toISOString(),
-        };
+      const { error } = await supabase.from('prayers').delete().eq('id', prayerId);
+      if (error) throw new Error(error.message);
+      return;
+    }
+    saveLocalPrayers(getLocalPrayers().filter((p) => p.id !== prayerId));
+  },
 
-        if (isUuid) {
-          const { data, error } = await supabase
+  /**
+   * Save Campaign (Create or Update).
+   * Update TIDAK menyentuh current_count agar ketukan jamaah yang masuk selama
+   * admin mengedit tidak tertimpa; koreksi hitungan pakai setCampaignCount().
+   */
+  async saveCampaign(campaign: CampaignInput): Promise<Campaign> {
+    const fields = {
+      title: campaign.title,
+      slug: campaign.slug,
+      category: campaign.category || 'syifa',
+      description: campaign.description,
+      arabic_text: campaign.arabic_text,
+      latin_text: campaign.latin_text,
+      translation_text: campaign.translation_text,
+      target_count: campaign.target_count,
+      status: campaign.status,
+      image_url: campaign.image_url,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (isSupabaseConfigured && supabase) {
+      const existingId = campaign.id && isValidUUID(campaign.id) ? campaign.id : null;
+
+      const { data, error } = existingId
+        ? await supabase.from('campaigns').update(fields).eq('id', existingId).select().single()
+        : await supabase
             .from('campaigns')
-            .update(payload)
-            .eq('id', campaign.id)
+            .insert({ ...fields, current_count: campaign.current_count || 0, status: campaign.status || 'active' })
             .select()
             .single();
 
-          if (!error && data) {
-            const list = getLocalCampaigns();
-            const idx = list.findIndex((c) => c.id === data.id || c.slug === data.slug);
-            if (idx !== -1) {
-              list[idx] = data as Campaign;
-              saveLocalCampaigns(list);
-            }
-            return data as Campaign;
-          }
-        } else if (campaign.slug) {
-          // Check if exists by slug in Supabase
-          const { data: existing } = await supabase
-            .from('campaigns')
-            .select('id')
-            .eq('slug', campaign.slug)
-            .maybeSingle();
-
-          if (existing?.id) {
-            const { data, error } = await supabase
-              .from('campaigns')
-              .update(payload)
-              .eq('id', existing.id)
-              .select()
-              .single();
-
-            if (!error && data) {
-              const list = getLocalCampaigns();
-              const idx = list.findIndex((c) => c.id === data.id || c.slug === data.slug);
-              if (idx !== -1) {
-                list[idx] = data as Campaign;
-                saveLocalCampaigns(list);
-              }
-              return data as Campaign;
-            }
-          }
-
-          // Insert new campaign
-          const { data, error } = await supabase
-            .from('campaigns')
-            .insert({
-              ...payload,
-              current_count: campaign.current_count || 0,
-              status: campaign.status || 'active',
-              created_at: new Date().toISOString(),
-            })
-            .select()
-            .single();
-
-          if (!error && data) {
-            return data as Campaign;
-          }
-        } else {
-          // Insert new campaign
-          const { data, error } = await supabase
-            .from('campaigns')
-            .insert({
-              ...payload,
-              current_count: campaign.current_count || 0,
-              status: campaign.status || 'active',
-              created_at: new Date().toISOString(),
-            })
-            .select()
-            .single();
-
-          if (!error && data) {
-            return data as Campaign;
-          }
-        }
-      } catch (err) {
-        console.warn('Supabase saveCampaign fallback to local', err);
+      if (error) {
+        if (error.code === '23505') throw new Error('Slug campaign sudah dipakai. Ubah judulnya sedikit.');
+        throw new Error(error.message);
       }
+      return data as Campaign;
     }
 
-    // Local Storage Fallback
+    // Local Storage mode
     const list = getLocalCampaigns();
-    if (campaign.id) {
-      const idx = list.findIndex((c) => c.id === campaign.id || c.slug === campaign.slug);
-      if (idx !== -1) {
-        const updated = { ...list[idx], ...campaign, updated_at: new Date().toISOString() };
-        list[idx] = updated;
-        saveLocalCampaigns(list);
-        return updated;
-      }
+    const idx = campaign.id ? list.findIndex((c) => c.id === campaign.id) : -1;
+    if (idx !== -1) {
+      const updated = { ...list[idx], ...fields };
+      list[idx] = updated;
+      saveLocalCampaigns(list);
+      return updated;
     }
 
+    if (list.some((c) => c.slug === campaign.slug)) {
+      throw new Error('Slug campaign sudah dipakai. Ubah judulnya sedikit.');
+    }
     const newCampaign: Campaign = {
       ...campaign,
-      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'c_' + Date.now(),
+      id: newId('c'),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -577,29 +485,44 @@ export const DataService = {
   },
 
   /**
-   * Delete Campaign
+   * Koreksi/reset hitungan campaign (admin)
    */
-  async deleteCampaign(id: string): Promise<boolean> {
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const isUuid = isValidUUID(id);
-        const query = isUuid
-          ? supabase.from('campaigns').delete().eq('id', id)
-          : supabase.from('campaigns').delete().eq('slug', id);
+  async setCampaignCount(campaign: Campaign, count: number): Promise<void> {
+    const status: Campaign['status'] = count >= campaign.target_count ? 'completed' : campaign.status;
 
-        await query;
-      } catch (err) {
-        console.warn('Supabase deleteCampaign fallback to local', err);
-      }
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase
+        .from('campaigns')
+        .update({ current_count: count, status, updated_at: new Date().toISOString() })
+        .eq('id', campaign.id);
+      if (error) throw new Error(error.message);
+      return;
     }
 
     const list = getLocalCampaigns();
-    const filtered = list.filter((c) => c.id !== id && c.slug !== id);
-    saveLocalCampaigns(filtered);
-    return true;
+    const idx = list.findIndex((c) => c.id === campaign.id);
+    if (idx !== -1) {
+      list[idx] = { ...list[idx], current_count: count, status };
+      saveLocalCampaigns(list);
+    }
   },
 
+  /**
+   * Delete Campaign
+   */
+  async deleteCampaign(id: string): Promise<void> {
+    if (isSupabaseConfigured && supabase) {
+      const { error, count } = await supabase
+        .from('campaigns')
+        .delete({ count: 'exact' })
+        .eq(isValidUUID(id) ? 'id' : 'slug', id);
+      if (error) throw new Error(error.message);
+      if (count === 0) throw new Error('Campaign tidak terhapus (tidak ditemukan atau tidak ada izin).');
+      return;
+    }
 
+    saveLocalCampaigns(getLocalCampaigns().filter((c) => c.id !== id && c.slug !== id));
+  },
 
   /**
    * Migrate and upload all current local storage campaigns to Supabase
@@ -611,6 +534,7 @@ export const DataService = {
 
     const localList = getLocalCampaigns();
     let count = 0;
+    let lastError: string | undefined;
 
     for (const c of localList) {
       const { error } = await supabase.from('campaigns').upsert(
@@ -629,9 +553,10 @@ export const DataService = {
         },
         { onConflict: 'slug' }
       );
-      if (!error) count++;
+      if (error) lastError = error.message;
+      else count++;
     }
 
-    return { success: true, migrated: count };
-  }
+    return { success: !lastError, migrated: count, error: lastError };
+  },
 };

@@ -11,11 +11,13 @@ export default function HomePage() {
   const [liveTotal, setLiveTotal] = useState<number>(0);
 
   useEffect(() => {
-    DataService.getCampaigns().then((data) => {
-      setCampaigns(data);
-      const sum = data.reduce((acc, c) => acc + Number(c.current_count), 0);
-      setLiveTotal(sum);
-    });
+    DataService.getCampaigns()
+      .then((data) => {
+        setCampaigns(data);
+        const sum = data.reduce((acc, c) => acc + Number(c.current_count), 0);
+        setLiveTotal(sum);
+      })
+      .catch((err) => console.error('Gagal memuat campaign', err));
   }, []);
 
   const filteredCampaigns = campaigns.filter((c) => {

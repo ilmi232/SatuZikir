@@ -1,21 +1,18 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { getUserStats, calculateBadges, getStreakText, UserStats, Badge } from '@/lib/localStats';
+import { getUserStats, calculateBadges, getStreakText, Badge } from '@/lib/localStats';
 import BadgeDetailSheet from '@/components/BadgeDetailSheet';
+import { useIsClient } from '@/hooks/useIsClient';
 
 export default function RiwayatPage() {
-  const [stats, setStats] = useState<UserStats | null>(null);
-  const [badges, setBadges] = useState<Badge[]>([]);
+  const isClient = useIsClient();
+  // Statistik tersimpan di localStorage, jadi baru dibaca setelah hydration
+  const stats = useMemo(() => (isClient ? getUserStats() : null), [isClient]);
+  const badges = useMemo<Badge[]>(() => (stats ? calculateBadges(stats) : []), [stats]);
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const [filter, setFilter] = useState<'semua' | 'minggu' | 'bulan'>('semua');
-  
-  useEffect(() => {
-    const data = getUserStats();
-    setStats(data);
-    setBadges(calculateBadges(data));
-  }, []);
 
   if (!stats) {
     return <div className="min-h-screen flex items-center justify-center bg-[#faf8ff]"><div className="animate-pulse w-10 h-10 bg-gray-200 rounded-full"></div></div>;
@@ -124,7 +121,7 @@ export default function RiwayatPage() {
         
         <div className="bg-[#faf8ff] rounded-xl p-3 mb-4 border border-[#eaedff]/50">
           <p className="text-xs text-gray-500 italic text-center">
-            "Amalan yang paling dicintai Allah adalah yang istiqomah meskipun sedikit."
+            &ldquo;Amalan yang paling dicintai Allah adalah yang istiqomah meskipun sedikit.&rdquo;
           </p>
           <p className="text-[9px] text-gray-400 text-center mt-1">— HR. Bukhari & Muslim</p>
         </div>
@@ -301,7 +298,7 @@ export default function RiwayatPage() {
           Bagikan Kartu Istiqomah ke WhatsApp
         </button>
         <p className="text-[11px] text-gray-400 px-4 leading-relaxed">
-          Syiar tanpa riya'. Niatkan semata menyemangati keluarga & sahabat untuk turut memperbanyak zikir dan selawat.
+          Syiar tanpa riya&apos;. Niatkan semata menyemangati keluarga & sahabat untuk turut memperbanyak zikir dan selawat.
         </p>
       </section>
       

@@ -29,3 +29,15 @@ export interface DhikrSessionStats {
   currentRound: number; // e.g. 1 to 33
   totalRounds: number;
 }
+
+export type CampaignCategory = 'syifa' | 'ramadan' | 'tolak-bala' | 'harian';
+
+export interface GeneratedCampaign {
+  title: string;
+  target_count: number;
+  category: CampaignCategory;
+  arabic_text: string;
+  latin_text: string;
+  translation_text: string;
+  description: string;
+}

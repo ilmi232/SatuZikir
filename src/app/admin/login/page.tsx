@@ -3,24 +3,35 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import SatuZikirLogo from '@/components/SatuZikirLogo';
+import { isAdminDemoMode, signInAdmin, signInDemoAdmin } from '@/lib/adminAuth';
+
+const inputClass =
+  'w-full px-4 py-3 rounded-xl bg-[#f2f3ff] text-[#131b2e] text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#003527]';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [pin, setPin] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const expectedPin = process.env.NEXT_PUBLIC_ADMIN_PIN || '123456';
-
-  const handlePinLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    if (pin === expectedPin) {
-      sessionStorage.setItem('satuzikir_admin_auth', 'true');
+    setSubmitting(true);
+    try {
+      await signInAdmin(email, password);
       router.push('/admin');
-    } else {
-      setError('PIN Admin salah. Silakan coba lagi.');
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSubmitting(false);
     }
+  };
+
+  const handleDemoLogin = () => {
+    signInDemoAdmin();
+    router.push('/admin');
   };
 
   return (
@@ -40,28 +51,55 @@ export default function AdminLoginPage() {
           </div>
         )}
 
-        <form onSubmit={handlePinLogin} className="flex flex-col gap-5">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-[#131b2e]">PIN Akses Admin</label>
-            <div className="flex flex-col gap-1">
+        {isAdminDemoMode ? (
+          <div className="flex flex-col gap-4">
+            <p className="text-xs text-[#404944] text-center leading-relaxed">
+              Supabase belum dikonfigurasi. Mode demo menyimpan data hanya di browser ini.
+            </p>
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              className="w-full py-3.5 bg-[#003527] hover:bg-[#064e3b] text-white font-bold text-sm rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+            >
+              Masuk Mode Demo
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleLogin} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="admin-email" className="text-xs font-bold text-[#131b2e]">Email Admin</label>
               <input
-                type="password"
+                id="admin-email"
+                type="email"
                 required
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
-                placeholder="Masukkan PIN Admin"
-                className="w-full px-4 py-3 rounded-xl bg-[#f2f3ff] text-[#131b2e] text-center tracking-widest font-mono text-xl outline-none focus:bg-white focus:ring-2 focus:ring-[#003527]"
+                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={inputClass}
               />
             </div>
-          </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="admin-password" className="text-xs font-bold text-[#131b2e]">Kata Sandi</label>
+              <input
+                id="admin-password"
+                type="password"
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={inputClass}
+              />
+            </div>
 
-          <button
-            type="submit"
-            className="w-full py-3.5 bg-[#003527] hover:bg-[#064e3b] text-white font-bold text-sm rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
-          >
-            Masuk Hub Admin
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-3.5 mt-1 bg-[#003527] hover:bg-[#064e3b] disabled:opacity-60 text-white font-bold text-sm rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+            >
+              {submitting ? 'Memeriksa...' : 'Masuk Hub Admin'}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

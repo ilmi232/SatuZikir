@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Campaign } from '@/types';
 import { DataService } from '@/lib/dataService';
+import { useAdminGuard } from '@/lib/adminAuth';
 import Link from 'next/link';
 
 export default function EditCampaignPage() {
@@ -25,16 +26,11 @@ export default function EditCampaignPage() {
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<'active' | 'completed' | 'draft'>('active');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isAdmin = useAdminGuard();
 
   useEffect(() => {
-    const isAuth = sessionStorage.getItem('satuzikir_admin_auth');
-    if (!isAuth) {
-      router.push('/admin/login');
-      return;
-    }
-
-    if (!id) return;
-    DataService.getCampaigns().then((list) => {
+    if (!isAdmin || !id) return;
+    DataService.getCampaigns({ includeDrafts: true }).then((list) => {
       const found = list.find((c) => c.id === id || c.slug === id);
       if (found) {
         setCampaign(found);
@@ -50,8 +46,11 @@ export default function EditCampaignPage() {
         setStatus(found.status);
       }
       setLoading(false);
+    }).catch((err) => {
+      alert(`Gagal memuat campaign: ${(err as Error).message}`);
+      setLoading(false);
     });
-  }, [id, router]);
+  }, [id, isAdmin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,13 +68,20 @@ export default function EditCampaignPage() {
         latin_text: latinText.trim(),
         translation_text: translationText.trim(),
         target_count: Number(targetCount),
-        current_count: Number(currentCount) || 0,
+        current_count: campaign.current_count,
         status,
       });
 
+      // Hitungan hanya ditulis jika admin memang mengubahnya, agar ketukan
+      // jamaah yang masuk selama form terbuka tidak tertimpa.
+      const newCount = Number(currentCount) || 0;
+      if (newCount !== campaign.current_count) {
+        await DataService.setCampaignCount({ ...campaign, target_count: Number(targetCount), status }, newCount);
+      }
+
       router.push('/admin');
-    } catch {
-      alert('Terjadi kesalahan saat menyimpan perubahan.');
+    } catch (err) {
+      alert(`Gagal menyimpan perubahan: ${(err as Error).message}`);
     } finally {
       setIsSubmitting(false);
     }

@@ -2,16 +2,31 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Campaign } from '@/types';
+import { Campaign, Prayer } from '@/types';
 import { DataService } from '@/lib/dataService';
+import { adminFetch, signOutAdmin, useAdminGuard } from '@/lib/adminAuth';
 import { checkSupabaseHealth, isSupabaseConfigured, SupabaseHealthResult } from '@/lib/supabase';
-import { SUPABASE_PRODUCTION_SQL } from '@/lib/supabaseSql';
+import { loadSupabaseSchemaSql } from '@/lib/supabaseSql';
 import Link from 'next/link';
+
+/** Slug dari judul; judul tanpa huruf latin (mis. Arab) memakai slug berbasis waktu. */
+function makeSlug(title: string): string {
+  return (
+    title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-') || `campaign-${Date.now()}`
+  );
+}
 
 export default function AdminHubPage() {
   const router = useRouter();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const isAdmin = useAdminGuard();
+  const [prayers, setPrayers] = useState<Prayer[]>([]);
+  const [aiContentVerified, setAiContentVerified] = useState(false);
 
   // Supabase Live & Migration states
   const [supabaseHealth, setSupabaseHealth] = useState<SupabaseHealthResult | null>(null);
@@ -20,6 +35,7 @@ export default function AdminHubPage() {
   const [migrationStatusMsg, setMigrationStatusMsg] = useState<string | null>(null);
   const [showSqlGuideModal, setShowSqlGuideModal] = useState(false);
   const [copiedSql, setCopiedSql] = useState(false);
+  const [schemaSql, setSchemaSql] = useState<string | null>(null);
 
   // Form states for quick creation
   const [title, setTitle] = useState('');
@@ -65,9 +81,9 @@ export default function AdminHubPage() {
     setAiSuccessMsg(null);
 
     try {
-      const payload: any = { prompt: textPrompt.trim() };
+      const payload: { prompt: string; image?: string } = { prompt: textPrompt.trim() };
       if (aiImage) payload.image = aiImage;
-      const res = await fetch('/api/ai/generate-campaign', {
+      const res = await adminFetch('/api/ai/generate-campaign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -86,6 +102,7 @@ export default function AdminHubPage() {
       setLatinText(c.latin_text || '');
       setTranslationText(c.translation_text || '');
       setDescription(c.description || '');
+      setAiContentVerified(false);
       if (data.source === 'nvidia-nim' || data.source === 'kimi-k3') {
         const modelLabel = data.modelName ? `${data.modelName} (NVIDIA NIM)` : 'NVIDIA NIM AI';
         setAiSource(modelLabel);
@@ -112,16 +129,6 @@ export default function AdminHubPage() {
     }
   };
 
-  useEffect(() => {
-    const isAuth = sessionStorage.getItem('satuzikir_admin_auth');
-    if (!isAuth) {
-      router.push('/admin/login');
-      return;
-    }
-    loadCampaigns();
-    testSupabase();
-  }, [router]);
-
   const testSupabase = async () => {
     setIsTestingSupabase(true);
     const res = await checkSupabaseHealth();
@@ -142,9 +149,18 @@ export default function AdminHubPage() {
     setIsMigratingData(false);
   };
 
+  const openSqlGuide = () => {
+    setShowSqlGuideModal(true);
+    if (schemaSql) return;
+    loadSupabaseSchemaSql()
+      .then(setSchemaSql)
+      .catch((err) => setSchemaSql(`-- ${(err as Error).message}`));
+  };
+
   const handleCopySql = async () => {
     try {
-      await navigator.clipboard.writeText(SUPABASE_PRODUCTION_SQL);
+      if (!schemaSql) return;
+      await navigator.clipboard.writeText(schemaSql);
       setCopiedSql(true);
       setTimeout(() => setCopiedSql(false), 3000);
     } catch {
@@ -153,27 +169,38 @@ export default function AdminHubPage() {
   };
 
   const loadCampaigns = async () => {
-    setLoading(true);
-    const data = await DataService.getCampaigns();
-    setCampaigns(data);
-    setLoading(false);
+    try {
+      setCampaigns(await DataService.getCampaigns({ includeDrafts: true }));
+    } catch (err) {
+      alert(`Gagal memuat campaign: ${(err as Error).message}`);
+    }
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('satuzikir_admin_auth');
+  const handleDeletePrayer = async (prayer: Prayer) => {
+    if (!confirm(`Hapus doa dari "${prayer.name || 'Hamba Allah'}"? Doa akan hilang dari dinding doa.`)) return;
+    try {
+      await DataService.deletePrayer(prayer.id);
+      setPrayers((prev) => prev.filter((p) => p.id !== prayer.id));
+    } catch (err) {
+      alert(`Gagal menghapus doa: ${(err as Error).message}`);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOutAdmin();
     router.push('/admin/login');
   };
 
   const handleCreateCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !arabicText.trim() || !targetCount) return;
+    if (aiSource && !aiContentVerified) {
+      alert('Periksa dan centang verifikasi teks Arab, Latin, dan terjemahan hasil AI terlebih dahulu.');
+      return;
+    }
 
     setIsSubmitting(true);
-    const slug = title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .trim()
-      .replace(/\s+/g, '-') || `campaign-${Date.now()}`;
+    const slug = makeSlug(title);
 
     try {
       await DataService.saveCampaign({
@@ -196,58 +223,76 @@ export default function AdminHubPage() {
       setDescription('');
       setAiSuccessMsg(null);
       setAiSource(null);
+      setAiContentVerified(false);
       alert('Campaign Zikir Berhasil Didaftarkan & Disinkronkan!');
       await loadCampaigns();
-    } catch {
-      alert('Terjadi kesalahan saat membuat campaign.');
+    } catch (err) {
+      alert(`Gagal membuat campaign: ${(err as Error).message}`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const runAdminAction = async (action: () => Promise<unknown>, failMsg: string) => {
+    try {
+      await action();
+    } catch (err) {
+      alert(`${failMsg}: ${(err as Error).message}`);
+    }
+    await loadCampaigns();
+  };
+
   const handleSaveReset = async () => {
     if (!selectedForReset) return;
-    await DataService.saveCampaign({
-      ...selectedForReset,
-      current_count: Number(newCountInput),
-      status: Number(newCountInput) >= selectedForReset.target_count ? 'completed' : selectedForReset.status,
-    });
+    const target = selectedForReset;
     setSelectedForReset(null);
-    await loadCampaigns();
+    await runAdminAction(
+      () => DataService.setCampaignCount(target, Number(newCountInput)),
+      'Gagal mengoreksi hitungan'
+    );
   };
 
   const handleCloseCampaign = async (campaign: Campaign) => {
     if (confirm(`Tutup majelis "${campaign.title}"? Majelis ini akan ditandai selesai dan disembunyikan dari beranda publik aktif.`)) {
-      await DataService.saveCampaign({
-        ...campaign,
-        status: 'completed',
-      });
-      await loadCampaigns();
+      await runAdminAction(
+        () => DataService.saveCampaign({ ...campaign, status: 'completed' }),
+        'Gagal menutup majelis'
+      );
     }
   };
 
   const handleReopenCampaign = async (campaign: Campaign) => {
     if (confirm(`Buka kembali majelis "${campaign.title}" agar kembali aktif di beranda?`)) {
-      await DataService.saveCampaign({
-        ...campaign,
-        status: 'active',
-      });
-      await loadCampaigns();
+      await runAdminAction(
+        () => DataService.saveCampaign({ ...campaign, status: 'active' }),
+        'Gagal membuka kembali majelis'
+      );
     }
   };
 
   const handleDeleteCampaign = async (campaign: Campaign) => {
     if (confirm(`Yakin ingin MENGHAPUS PERMANEN campaign "${campaign.title}"? Seluruh data hitungan tidak dapat dipulihkan.`)) {
-      await DataService.deleteCampaign(campaign.id);
-      await loadCampaigns();
+      await runAdminAction(() => DataService.deleteCampaign(campaign.id), 'Gagal menghapus campaign');
     }
   };
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    DataService.getCampaigns({ includeDrafts: true })
+      .then(setCampaigns)
+      .catch((err) => alert(`Gagal memuat campaign: ${(err as Error).message}`))
+      .finally(() => setLoading(false));
+    DataService.getPrayers('global')
+      .then(setPrayers)
+      .catch((err) => console.error('Gagal memuat doa jamaah', err));
+    checkSupabaseHealth().then(setSupabaseHealth);
+  }, [isAdmin]);
 
   const totalZikir = campaigns.reduce((acc, c) => acc + Number(c.current_count), 0);
   const activeCount = campaigns.filter((c) => c.status !== 'completed').length;
   const completedCount = campaigns.filter((c) => c.status === 'completed').length;
 
-  if (loading) {
+  if (!isAdmin || loading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 min-h-[60vh]">
         <div className="w-10 h-10 rounded-full border-4 border-[#eaedff] border-t-[#003527] animate-spin mb-3" />
@@ -331,7 +376,7 @@ export default function AdminHubPage() {
               </button>
 
               <button
-                onClick={() => setShowSqlGuideModal(true)}
+                onClick={openSqlGuide}
                 type="button"
                 className="px-2.5 py-1 rounded-xl bg-[#003527] hover:bg-[#064e3b] text-white text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
               >
@@ -702,9 +747,24 @@ export default function AdminHubPage() {
             />
           </div>
 
+          {aiSource && (
+            <label className="flex items-start gap-2 bg-[#fff8f1] border border-[#ffdcc3] rounded-xl p-3 text-[11px] text-[#2f1500] leading-relaxed cursor-pointer">
+              <input
+                type="checkbox"
+                checked={aiContentVerified}
+                onChange={(e) => setAiContentVerified(e.target.checked)}
+                className="mt-0.5 accent-[#003527]"
+              />
+              <span>
+                Saya sudah memeriksa lafadz Arab, transliterasi, terjemahan, dan fadhilah hasil AI di atas
+                dan memastikannya sahih sebelum dipublikasikan ke jamaah.
+              </span>
+            </label>
+          )}
+
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || (Boolean(aiSource) && !aiContentVerified)}
             className="w-full h-11 bg-[#003527] hover:bg-[#064e3b] text-white text-xs font-bold rounded-xl shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-[0.98] cursor-pointer disabled:opacity-50"
           >
             <span className="material-symbols-outlined text-[18px]">broadcast_on_personal</span>
@@ -776,7 +836,12 @@ export default function AdminHubPage() {
                           ? 'Harian'
                           : 'Hajat & Syifa'}
                       </span>
-                      {isClosed ? (
+                      {c.status === 'draft' ? (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#eaedff] text-[#404944] flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[12px]">edit_note</span>
+                          Draft (tersembunyi)
+                        </span>
+                      ) : isClosed ? (
                         <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#ffdad6] text-[#93000a] flex items-center gap-1">
                           <span className="material-symbols-outlined text-[12px]">check_circle</span>
                           Selesai / Ditutup
@@ -879,6 +944,43 @@ export default function AdminHubPage() {
               </div>
             );
           })}
+      </div>
+
+      {/* 5. Moderasi Dinding Doa */}
+      <div className="flex flex-col space-y-2.5 pb-6">
+        <div className="flex items-center justify-between">
+          <h2 className="font-headline text-base text-[#131b2e] font-bold">Moderasi Doa Jamaah</h2>
+          <span className="text-[10px] text-[#404944]">{prayers.length} doa terbaru</span>
+        </div>
+
+        {prayers.length === 0 ? (
+          <p className="text-xs text-[#404944] bg-white rounded-2xl p-4 border border-[#eaedff] text-center">
+            Belum ada doa masuk.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-2 max-h-96 overflow-y-auto">
+            {prayers.map((p) => (
+              <div key={p.id} className="flex items-start justify-between gap-2 bg-white p-3 rounded-xl border border-[#eaedff]">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-bold text-[#003527] truncate">
+                    {p.name || 'Hamba Allah'}
+                    <span className="font-normal text-[#404944]"> · {new Date(p.created_at).toLocaleString('id-ID')}</span>
+                  </p>
+                  <p className="text-xs text-[#131b2e] break-words">{p.prayer_text}</p>
+                </div>
+                <button
+                  onClick={() => handleDeletePrayer(p)}
+                  type="button"
+                  title="Hapus doa ini"
+                  className="shrink-0 px-2 py-1 rounded-lg bg-[#f2f3ff] hover:bg-[#ffdad6] text-[#404944] hover:text-[#93000a] text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[14px]">delete</span>
+                  <span>Hapus</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Modal Koreksi / Reset Counter */}
@@ -1011,7 +1113,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
               <div className="space-y-1">
                 <span className="text-[10px] uppercase font-bold text-[#404944]">Intip Potongan SQL:</span>
                 <pre className="bg-[#002d20] text-[#80bea6] p-2 rounded-xl text-[10px] font-mono h-24 overflow-y-auto">
-                  {SUPABASE_PRODUCTION_SQL.slice(0, 500)}...
+                  {schemaSql ? `${schemaSql.slice(0, 500)}...` : 'Memuat skema SQL...'}
                 </pre>
               </div>
             </div>

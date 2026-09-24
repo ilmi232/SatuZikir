@@ -73,7 +73,7 @@ export default function BadgeDetailSheet({ badge, onClose }: BadgeDetailSheetPro
             </p>
             <div className="border-t border-gray-200 pt-3 mt-3">
               <p className="text-xs text-gray-500 italic text-center leading-relaxed">
-                "Amalan yang paling dicintai Allah adalah yang berkesinambungan (istiqomah) walaupun sedikit."
+                &ldquo;Amalan yang paling dicintai Allah adalah yang berkesinambungan (istiqomah) walaupun sedikit.&rdquo;
               </p>
               <p className="text-[10px] text-gray-400 text-center mt-1">— HR. Bukhari & Muslim</p>
             </div>

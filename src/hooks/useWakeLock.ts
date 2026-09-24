@@ -1,14 +1,11 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { useIsClient } from './useIsClient';
 
 export function useWakeLock() {
   const [isLocked, setIsLocked] = useState(false);
-  const [isSupported, setIsSupported] = useState(false);
-
-  useEffect(() => {
-    setIsSupported(typeof navigator !== 'undefined' && 'wakeLock' in navigator);
-  }, []);
+  const isSupported = useIsClient() && 'wakeLock' in navigator;
 
   const requestWakeLock = useCallback(async () => {
     if (typeof navigator === 'undefined' || !('wakeLock' in navigator)) return;

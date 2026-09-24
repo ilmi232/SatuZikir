@@ -1,35 +1,31 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { useIsClient } from './useIsClient';
 
 export type Theme = 'light' | 'dark';
 
-export function useTheme() {
-  const [theme, setTheme] = useState<Theme>('light');
+function readStoredTheme(): Theme {
+  try {
+    return localStorage.getItem('satuzikir_theme') === 'dark' ? 'dark' : 'light';
+  } catch {
+    return 'light';
+  }
+}
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('satuzikir_theme') as Theme | null;
-      if (saved === 'dark') {
-        setTheme('dark');
-        document.documentElement.classList.add('dark');
-      }
-    } catch { /* ignore */ }
-  }, []);
+export function useTheme() {
+  const isClient = useIsClient();
+  // null = ikuti pilihan tersimpan (kelas .dark sudah dipasang skrip anti-FOUC di layout)
+  const [chosen, setChosen] = useState<Theme | null>(null);
+  const theme: Theme = chosen ?? (isClient ? readStoredTheme() : 'light');
 
   const toggleTheme = useCallback(() => {
-    setTheme((prev) => {
-      const next = prev === 'light' ? 'dark' : 'light';
-      try {
-        localStorage.setItem('satuzikir_theme', next);
-        if (next === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      } catch { /* ignore */ }
-      return next;
-    });
-  }, []);
+    const next: Theme = theme === 'light' ? 'dark' : 'light';
+    setChosen(next);
+    try {
+      localStorage.setItem('satuzikir_theme', next);
+    } catch { /* ignore */ }
+    document.documentElement.classList.toggle('dark', next === 'dark');
+  }, [theme]);
 
   return { theme, toggleTheme };
 }

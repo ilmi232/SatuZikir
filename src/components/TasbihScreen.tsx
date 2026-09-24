@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Campaign, Prayer } from '@/types';
-import { DataService } from '@/lib/dataService';
+import { DataService, PRAYER_NAME_MAX, PRAYER_TEXT_MAX } from '@/lib/dataService';
 import { playTasbihClick, playMilestoneSound, triggerHaptic } from '@/lib/audioHaptics';
 import { useWakeLock } from '@/hooks/useWakeLock';
 import confetti from 'canvas-confetti';
@@ -11,13 +11,22 @@ import { recordSession } from '@/lib/localStats';
 import ShareSyiarButton from '@/components/ShareSyiarButton';
 import SyiarCardModal from '@/components/SyiarCardModal';
 
+const MAX_SYNC_RETRIES = 3;
+
 interface TasbihScreenProps {
   campaign: Campaign;
 }
 
 export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreenProps) {
   const [campaign, setCampaign] = useState<Campaign>(initialCampaign);
-  const [personalCount, setPersonalCount] = useState<number>(0);
+  // TasbihScreen hanya dirender di browser (setelah campaign dimuat), jadi aman membaca localStorage di sini
+  const [personalCount, setPersonalCount] = useState<number>(() => {
+    try {
+      return parseInt(localStorage.getItem(`satuzikir_user_${initialCampaign.id}`) || '0', 10) || 0;
+    } catch {
+      return 0;
+    }
+  });
   const [batchStep, setBatchStep] = useState<number>(0);
   const [isHapticOn, setIsHapticOn] = useState<boolean>(true);
   const [isAudioOn, setIsAudioOn] = useState<boolean>(true);
@@ -42,6 +51,10 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
   // Pending batch queue ref
   const pendingBatchRef = useRef<number>(0);
   const batchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const failedAttemptsRef = useRef<number>(0);
+  const flushBatchRef = useRef<() => void>(() => {});
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [hajatError, setHajatError] = useState<string | null>(null);
 
   useEffect(() => {
     requestWakeLock();
@@ -57,23 +70,13 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
     }
   }, [milestoneNotice]);
 
-  // Load personal count
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(`satuzikir_user_${campaign.id}`);
-      if (stored) {
-        setPersonalCount(parseInt(stored, 10) || 0);
-      }
-    } catch {
-      // ignore
-    }
-  }, [campaign.id]);
-
   // Load prayers for live ticker
   useEffect(() => {
-    DataService.getPrayers(campaign.id).then((list) => {
-      if (list.length > 0) setPrayers(list);
-    });
+    DataService.getPrayers(campaign.id)
+      .then((list) => {
+        if (list.length > 0) setPrayers(list);
+      })
+      .catch((err) => console.warn('Gagal memuat hajat jamaah', err));
 
     const unsubscribePrayers = DataService.subscribeToPrayers(
       campaign.id,
@@ -110,6 +113,8 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
 
     try {
       const updatedTotal = await DataService.incrementCounter(campaign.id, amount);
+      failedAttemptsRef.current = 0;
+      setSyncError(null);
       const isDone = updatedTotal >= campaign.target_count;
       recordSession(campaign.id, campaign.title, campaign.slug, amount, isDone);
       if (updatedTotal > 0) {
@@ -119,22 +124,50 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
           status: isDone ? 'completed' : prev.status,
         }));
       }
-    } catch {
-      recordSession(campaign.id, campaign.title, campaign.slug, amount, false);
+    } catch (err) {
+      failedAttemptsRef.current += 1;
+      if (failedAttemptsRef.current <= MAX_SYNC_RETRIES) {
+        // Antrekan ulang agar ketukan tidak hilang, lalu coba lagi sebentar lagi
+        pendingBatchRef.current += amount;
+        setSyncError(`Gagal menyinkronkan ${pendingBatchRef.current} ketukan, mencoba lagi...`);
+        if (batchTimeoutRef.current) clearTimeout(batchTimeoutRef.current);
+        batchTimeoutRef.current = setTimeout(() => flushBatchRef.current(), 5000);
+      } else {
+        failedAttemptsRef.current = 0;
+        setSyncError(`Ketukan tidak tersimpan ke server: ${(err as Error).message}`);
+        recordSession(campaign.id, campaign.title, campaign.slug, amount, false);
+      }
     }
   }, [campaign.id, campaign.title, campaign.slug, campaign.target_count]);
 
-  // Flush on unmount or tab close
   useEffect(() => {
-    return () => {
-      if (pendingBatchRef.current > 0) {
-        const remaining = pendingBatchRef.current;
-        DataService.incrementCounter(campaign.id, remaining);
-        recordSession(campaign.id, campaign.title, campaign.slug, remaining, false);
-      }
+    flushBatchRef.current = flushBatch;
+  }, [flushBatch]);
+
+  // Kirim sisa ketukan saat tab disembunyikan/ditutup atau komponen dilepas.
+  // Memakai keepalive agar request tidak dibatalkan browser.
+  useEffect(() => {
+    const flushOnExit = () => {
+      const remaining = pendingBatchRef.current;
+      if (remaining <= 0) return;
+      pendingBatchRef.current = 0;
       if (batchTimeoutRef.current) {
         clearTimeout(batchTimeoutRef.current);
+        batchTimeoutRef.current = null;
       }
+      DataService.flushCounterOnExit(campaign.id, remaining);
+      recordSession(campaign.id, campaign.title, campaign.slug, remaining, false);
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') flushOnExit();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('pagehide', flushOnExit);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pagehide', flushOnExit);
+      flushOnExit();
     };
   }, [campaign.id, campaign.title, campaign.slug]);
 
@@ -229,14 +262,15 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
     if (!hajatText.trim()) return;
 
     setSubmittingHajat(true);
+    setHajatError(null);
     try {
       const created = await DataService.submitPrayer(campaign.id, hajatName, hajatText);
-      setPrayers((prev) => [created, ...prev]);
+      setPrayers((prev) => [created, ...prev.filter((p) => p.id !== created.id)]);
       setHajatName('');
       setHajatText('');
       setIsHajatModalOpen(false);
-    } catch {
-      // ignore
+    } catch (err) {
+      setHajatError((err as Error).message || 'Gagal mengirim hajat.');
     } finally {
       setSubmittingHajat(false);
     }
@@ -251,7 +285,6 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
 
   const currentPrayer = prayers[currentPrayerIdx];
 
-  const shareText = `Mari bersama-sama melantunkan ${campaign.title}. Terkumpul: ${campaign.current_count.toLocaleString()} dari target ${campaign.target_count.toLocaleString()} (${percentage}%). Gabung ruang zikir live: ${typeof window !== 'undefined' ? window.location.href : ''}`;
 
   return (
     <div className="flex flex-col w-full">
@@ -409,7 +442,12 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
 
           {/* Optimistic batch syncing indicator */}
           <div className="flex items-center gap-1.5 mt-0.5 h-4">
-            {batchStep > 0 ? (
+            {syncError ? (
+              <>
+                <span className="material-symbols-outlined text-[12px] text-[#a00000]">sync_problem</span>
+                <span className="text-[10px] text-[#a00000] font-medium">{syncError}</span>
+              </>
+            ) : batchStep > 0 ? (
               <>
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#fe932c] animate-pulse" />
                 <span className="text-[10px] text-[#404944] font-medium">
@@ -641,6 +679,7 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
                 <input
                   type="text"
                   value={hajatName}
+                  maxLength={PRAYER_NAME_MAX}
                   onChange={(e) => setHajatName(e.target.value)}
                   placeholder="Contoh: Fulan bin Fulan (Surabaya)"
                   className="bg-[#f2f3ff] text-[#131b2e] text-xs px-3 py-2 rounded-xl focus:outline-none focus:bg-white focus:ring-1 focus:ring-[#003527]"
@@ -655,11 +694,18 @@ export default function TasbihScreen({ campaign: initialCampaign }: TasbihScreen
                   required
                   rows={3}
                   value={hajatText}
+                  maxLength={PRAYER_TEXT_MAX}
                   onChange={(e) => setHajatText(e.target.value)}
                   placeholder="Tuliskan hajat kesembuhan, kelancaran rezeki, atau doa terbaik..."
                   className="bg-[#f2f3ff] text-[#131b2e] text-xs px-3 py-2 rounded-xl focus:outline-none focus:bg-white focus:ring-1 focus:ring-[#003527] resize-none"
                 />
               </div>
+
+              {hajatError && (
+                <p className="text-[11px] font-semibold text-[#a00000] bg-[#ffe4e4] rounded-lg px-3 py-2">
+                  {hajatError}
+                </p>
+              )}
 
               <button
                 type="submit"

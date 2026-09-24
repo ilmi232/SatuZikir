@@ -1,41 +1,19 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DataService } from '@/lib/dataService';
+import { DataService, PRAYER_NAME_MAX, PRAYER_TEXT_MAX } from '@/lib/dataService';
 import { Prayer } from '@/types';
 
 export default function HajatPage() {
   const [prayers, setPrayers] = useState<Prayer[]>([]);
   const [aamiinedIds, setAamiinedIds] = useState<Set<string>>(new Set());
-  const [localAamiinCounts, setLocalAamiinCounts] = useState<Record<string, number>>({});
   const [name, setName] = useState('');
   const [text, setText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
-
-  useEffect(() => {
-    loadPrayers();
-    const unsubscribe = DataService.subscribeToPrayers(
-      'global',
-      (newPrayer) => {
-        setPrayers((prev) => [newPrayer, ...prev.filter(p => p.id !== newPrayer.id)]);
-      },
-      (prayerId, newAmin) => {
-        setPrayers((prev) => prev.map(p => p.id === prayerId ? { ...p, amin_count: newAmin } : p));
-      }
-    );
-    return () => unsubscribe();
-  }, []);
-
-  const loadPrayers = async () => {
-    try {
-      const data = await DataService.getPrayers('global');
-      setPrayers(data);
-    } catch (err) {
-      console.error('Failed to load prayers', err);
-    }
-  };
+  // Waktu acuan untuk label "x menit lalu"; diperbarui tiap menit
+  const [now, setNow] = useState<number>(0);
 
   const showNotification = (msg: string) => {
     setToastMsg(msg);
@@ -45,20 +23,48 @@ export default function HajatPage() {
     }, 3000);
   };
 
+  useEffect(() => {
+    DataService.getPrayers('global')
+      .then((data) => {
+        setPrayers(data);
+        setAamiinedIds(new Set(data.filter((p) => DataService.hasAmined(p.id)).map((p) => p.id)));
+        setNow(Date.now());
+      })
+      .catch((err) => {
+        console.error('Failed to load prayers', err);
+        showNotification('Gagal memuat dinding doa.');
+      });
+    const clock = setInterval(() => setNow(Date.now()), 60000);
+    const unsubscribe = DataService.subscribeToPrayers(
+      'global',
+      (newPrayer) => {
+        setPrayers((prev) => [newPrayer, ...prev.filter(p => p.id !== newPrayer.id)]);
+      },
+      (prayerId, newAmin) => {
+        setPrayers((prev) => prev.map(p => p.id === prayerId ? { ...p, amin_count: newAmin } : p));
+      }
+    );
+    return () => {
+      clearInterval(clock);
+      unsubscribe();
+    };
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
     
     setSubmitting(true);
     try {
-      await DataService.submitPrayer('global', name, text);
+      const created = await DataService.submitPrayer('global', name, text);
+      setPrayers((prev) => [created, ...prev.filter((p) => p.id !== created.id)]);
+      setNow(Date.now());
       setName('');
       setText('');
       showNotification('Hajat berhasil dititipkan 🤲');
-      loadPrayers();
     } catch (err) {
       console.error(err);
-      showNotification('Gagal mengirim hajat.');
+      showNotification((err as Error).message || 'Gagal mengirim hajat.');
     } finally {
       setSubmitting(false);
     }
@@ -68,10 +74,9 @@ export default function HajatPage() {
     if (aamiinedIds.has(prayerId)) return;
     
     setAamiinedIds((prev) => new Set(prev).add(prayerId));
-    setLocalAamiinCounts((prev) => ({
-      ...prev,
-      [prayerId]: (prev[prayerId] || prayers.find(p => p.id === prayerId)?.amin_count || 0) + 1
-    }));
+    setPrayers((prev) =>
+      prev.map((p) => (p.id === prayerId ? { ...p, amin_count: (p.amin_count || 0) + 1 } : p))
+    );
     
     const btn = document.getElementById(`aamiin-btn-${prayerId}`);
     if (btn) {
@@ -88,7 +93,7 @@ export default function HajatPage() {
   };
 
   const formatRelativeTime = (isoDate: string) => {
-    const diffMs = Date.now() - new Date(isoDate).getTime();
+    const diffMs = now - new Date(isoDate).getTime();
     const diffMins = Math.floor(diffMs / 60000);
     if (diffMins < 1) return 'Baru saja';
     if (diffMins < 60) return `${diffMins} menit lalu`;
@@ -144,6 +149,7 @@ export default function HajatPage() {
           <input
             type="text"
             value={name}
+            maxLength={PRAYER_NAME_MAX}
             onChange={(e) => setName(e.target.value)}
             placeholder="Nama / Inisial / Kota (opsional)"
             className="w-full px-3.5 py-2.5 rounded-xl bg-[#f2f3ff] border border-[#eaedff] text-xs text-[#131b2e] focus:outline-none focus:ring-1 focus:ring-[#003527]"
@@ -151,6 +157,7 @@ export default function HajatPage() {
           />
           <textarea
             value={text}
+            maxLength={PRAYER_TEXT_MAX}
             onChange={(e) => setText(e.target.value)}
             placeholder="Tuliskan hajat kesembuhan, kelancaran rezeki, atau doa terbaik..."
             className="w-full px-3.5 py-2.5 rounded-xl bg-[#f2f3ff] border border-[#eaedff] text-xs text-[#131b2e] focus:outline-none focus:ring-1 focus:ring-[#003527] resize-none h-24"
@@ -191,7 +198,7 @@ export default function HajatPage() {
           <div className="flex flex-col gap-2.5">
             {prayers.map((prayer) => {
               const isCampaign = prayer.campaign_id && prayer.campaign_id !== 'global';
-              const displayAmin = localAamiinCounts[prayer.id] || prayer.amin_count || 0;
+              const displayAmin = prayer.amin_count || 0;
               const hasAamiined = aamiinedIds.has(prayer.id);
 
               return (

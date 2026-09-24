@@ -4,6 +4,7 @@ import MobileHeader from '@/components/MobileHeader';
 import MobileNav from '@/components/MobileNav';
 
 export const metadata: Metadata = {
+  metadataBase: process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL) : undefined,
   title: 'SatuZikir - Majelis Zikir Daring Real-Time',
   description: 'Bergabung dalam jutaan butir zikir umat hari ini. Satu niat, beribu ketukan tasbih bersama jamaah se-Nusantara.',
   manifest: '/manifest.json',

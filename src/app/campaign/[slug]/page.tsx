@@ -1,55 +1,61 @@
-'use client';
+import type { Metadata } from 'next';
+import type { Campaign } from '@/types';
+import { isSupabaseConfigured, supabaseAnonKey as anonKey, supabaseUrl as url } from '@/lib/supabaseConfig';
+import CampaignRoom from './CampaignRoom';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { Campaign } from '@/types';
-import { DataService } from '@/lib/dataService';
-import TasbihScreen from '@/components/TasbihScreen';
-import Link from 'next/link';
+type Props = { params: Promise<{ slug: string }> };
 
-export default function CampaignDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const slug = params?.slug as string;
+type CampaignPreview = Pick<Campaign, 'title' | 'description' | 'current_count' | 'target_count' | 'status'>;
 
-  const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+/** Ambil data ringkas campaign di server untuk preview link (WhatsApp, dsb). */
+async function fetchCampaignPreview(slug: string): Promise<CampaignPreview | null> {
+  if (!isSupabaseConfigured) return null;
 
-  useEffect(() => {
-    if (!slug) return;
-    DataService.getCampaignBySlug(slug).then((data) => {
-      setCampaign(data);
-      setLoading(false);
+  const column = /^[0-9a-f-]{36}$/i.test(slug) ? 'id' : 'slug';
+  const query = new URLSearchParams({
+    select: 'title,description,current_count,target_count,status',
+    [column]: `eq.${slug}`,
+    limit: '1',
+  });
+
+  try {
+    const res = await fetch(`${url}/rest/v1/campaigns?${query}`, {
+      headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+      next: { revalidate: 60 },
     });
-  }, [slug]);
+    if (!res.ok) return null;
+    const rows = (await res.json()) as CampaignPreview[];
+    return rows[0] ?? null;
+  } catch {
+    return null;
+  }
+}
 
-  if (loading) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[60vh]">
-        <div className="w-10 h-10 rounded-full border-4 border-[#eaedff] border-t-[#003527] animate-spin mb-3" />
-        <p className="text-xs text-[#404944]">Menyiapkan ruang zikir jamaah...</p>
-      </div>
-    );
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const campaign = await fetchCampaignPreview(slug);
+  if (!campaign || campaign.status === 'draft') {
+    return { title: 'Ruang Zikir - SatuZikir' };
   }
 
-  if (!campaign) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[60vh]">
-        <h2 className="font-headline text-xl font-bold text-[#003527] mb-1">
-          Amalan Tidak Ditemukan
-        </h2>
-        <p className="text-xs text-[#404944] mb-4">
-          Amalan yang Anda tuju mungkin sudah selesai atau tautan kurang tepat.
-        </p>
-        <Link
-          href="/"
-          className="px-4 py-2 bg-[#003527] text-white text-xs font-bold rounded-xl"
-        >
-          Kembali ke Katalog
-        </Link>
-      </div>
-    );
-  }
+  const progress = `${Number(campaign.current_count).toLocaleString('id-ID')} dari ${Number(campaign.target_count).toLocaleString('id-ID')} butir terkumpul`;
+  const description = campaign.description ? `${progress}. ${campaign.description}` : progress;
+  const title = `${campaign.title} - SatuZikir`;
 
-  return <TasbihScreen campaign={campaign} />;
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      siteName: 'SatuZikir',
+      images: [{ url: '/logo-app.jpg' }],
+    },
+  };
+}
+
+export default async function CampaignPage({ params }: Props) {
+  const { slug } = await params;
+  return <CampaignRoom slug={slug} />;
 }

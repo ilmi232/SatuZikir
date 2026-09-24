@@ -27,14 +27,16 @@ export default function ShareSyiarButton({
 
   const remaining = Math.max(0, targetCount - totalCount);
   const pct = Math.round((totalCount / targetCount) * 100);
-  const shareText = `Alhamdulillah, baru saja menyumbang ${personalCount.toLocaleString('id-ID')}x ${campaignName} bersama jamaah SatuZikir. Sudah ${pct}% tercapai (kurang ${remaining.toLocaleString('id-ID')} butir lagi menuju khatam). Mari bergabung: https://satuzikir.id`;
+  // Tautan langsung ke ruang zikir campaign agar preview link menampilkan judul & progresnya
+  const buildShareText = () =>
+    `Alhamdulillah, baru saja menyumbang ${personalCount.toLocaleString('id-ID')}x ${campaignName} bersama jamaah SatuZikir. Sudah ${pct}% tercapai (kurang ${remaining.toLocaleString('id-ID')} butir lagi menuju khatam). Mari bergabung: ${window.location.origin}/campaign/${campaignSlug}`;
 
   const handleShare = async () => {
     if (navigator.share) {
       try {
         await navigator.share({
           title: 'SatuZikir',
-          text: shareText,
+          text: buildShareText(),
         });
         showSuccessToast();
       } catch (err) {
@@ -48,7 +50,7 @@ export default function ShareSyiarButton({
   };
 
   const fallbackShare = () => {
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(buildShareText())}`;
     window.open(whatsappUrl, '_blank');
     showSuccessToast();
   };
